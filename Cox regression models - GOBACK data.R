@@ -574,6 +574,8 @@ save(goback.coxmodels, file = 'goback.cox.ph.results.v20180124.1.rdata'); rm(m, 
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 #' THIS SECTION IS DEPRECATED.  USE THE VERSION REVISED 02/23/2018.
+#' 
+#' IT IS RETAINED HERE FOR RECORD-KEEPING PURPOSES.
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
@@ -615,6 +617,8 @@ load('goback.cox.ph.results.v20180124.1.rdata')
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 #' THIS SECTION IS DEPRECATED.  USE THE VERSION REVISED 02/23/2018.
+#' 
+#' IT IS RETAINED HERE FOR RECORD-KEEPING PURPOSES.
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
@@ -636,37 +640,37 @@ load('goback.cox.ph.results.v20180124.1.rdata')
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
-#' setwd('Z:/Jeremy/GOBACK/Datasets/') 
+setwd('Z:/Jeremy/GOBACK/Datasets/') 
 
-#' load('goback.cox.ph.results.v20180124.1.rdata')
+load('goback.cox.ph.results.v20180124.1.rdata')
 
 #' Compute Bonferroni-Holm adjusted p-values.
-#' goback.coxmodels <- arrange(goback.coxmodels, p.val.coef)
-#' goback.coxmodels$j.rev <- 606:1
-#' goback.coxmodels$p.val.coef.bon <- 0.05/goback.coxmodels$j.rev
-#' goback.coxmodels$p.val.coef.bon.delta <- goback.coxmodels$p.val.coef - goback.coxmodels$p.val.coef.bon
+goback.coxmodels <- arrange(goback.coxmodels, p.val.coef)
+goback.coxmodels$j.rev <- 606:1
+goback.coxmodels$p.val.coef.bon <- 0.05/goback.coxmodels$j.rev
+goback.coxmodels$p.val.coef.bon.delta <- goback.coxmodels$p.val.coef - goback.coxmodels$p.val.coef.bon
 #' 371 results considered significant after adjustment.
-#' goback.coxmodels <- goback.coxmodels[1:371, 1:13]
+goback.coxmodels <- goback.coxmodels[1:371, 1:13]
 
-#' pat1 <- 'conganomalies.'; pat2 <- 'chromosomalanomalies'; pat3 <- '.any'; pat4 <- '.other'; 
-#' pat5 <- 'septal.defects'; pat6 <- 'soft.other'
+pat1 <- 'conganomalies.'; pat2 <- 'chromosomalanomalies'; pat3 <- '.any'; pat4 <- '.other'; 
+pat5 <- 'septal.defects'; pat6 <- 'soft.other'
 
-#' goback.coxmodels <- goback.coxmodels[!grepl(pat1, goback.coxmodels$defect), ]
-#' goback.coxmodels <- goback.coxmodels[!grepl(pat2, goback.coxmodels$defect), ]
-#' goback.coxmodels <- goback.coxmodels[!grepl(pat3, goback.coxmodels$cancer), ]
+goback.coxmodels <- goback.coxmodels[!grepl(pat1, goback.coxmodels$defect), ]
+goback.coxmodels <- goback.coxmodels[!grepl(pat2, goback.coxmodels$defect), ]
+goback.coxmodels <- goback.coxmodels[!grepl(pat3, goback.coxmodels$cancer), ]
 
 #' Grab soft.other models, set them aside, them bind them back in.
-#' tmp <- goback.coxmodels[grepl(pat6, goback.coxmodels$cancer), ]
-#' goback.coxmodels <- goback.coxmodels[!grepl(pat4, goback.coxmodels$cancer), ]
-#' goback.coxmodels <- rbind(goback.coxmodels, tmp)
+tmp <- goback.coxmodels[grepl(pat6, goback.coxmodels$cancer), ]
+goback.coxmodels <- goback.coxmodels[!grepl(pat4, goback.coxmodels$cancer), ]
+goback.coxmodels <- rbind(goback.coxmodels, tmp)
 
-#' goback.coxmodels <- goback.coxmodels[!grepl(pat5, goback.coxmodels$defect), ]
+goback.coxmodels <- goback.coxmodels[!grepl(pat5, goback.coxmodels$defect), ]
 
-#' top.hits <- arrange(goback.coxmodels, defect) 
-#' save(top.hits, file = 'goback.cox.ph.top.hits.v20180131.1.rdata')
-#' write.csv(top.hits, file = 'Z:/Jeremy/GOBACK/R outputs/goback.cox.ph.top.hits.v20180131.1.csv', row.names = FALSE)
+top.hits <- arrange(goback.coxmodels, defect) 
+save(top.hits, file = 'goback.cox.ph.top.hits.v20180131.1.rdata')
+write.csv(top.hits, file = 'Z:/Jeremy/GOBACK/R outputs/goback.cox.ph.top.hits.v20180131.1.csv', row.names = FALSE)
 
-#' rm(top.hits, goback.coxmodels, pat1, pat2, pat3, pat4, pat5, pat6, tmp); gc()
+rm(top.hits, goback.coxmodels, pat1, pat2, pat3, pat4, pat5, pat6, tmp); gc()
 
 
 
