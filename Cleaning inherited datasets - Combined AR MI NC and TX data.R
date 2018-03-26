@@ -976,9 +976,9 @@ save(goback.chrom, file='goback.chrom.v20180122.1.rdata')
 
 #' For consistency with the chromosomal and non-chromosomal sets,
 #' drop children with sex == 9 from the combined dataset.
-setwd('Z:/Jeremy/GOBACK/Datsets/')
+setwd('Z:/Jeremy/GOBACK/Datasets/')
 
-load("goback.v20171211.1.rdata")
+load("./Old Datasets/goback.v20171211.1.rdata")
 
 goback <- filter(goback, sex != 9)
 

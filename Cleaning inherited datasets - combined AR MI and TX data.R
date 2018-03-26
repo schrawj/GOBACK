@@ -67,7 +67,9 @@ save(armitx, file = './ar.mi.tx.v20171023.1.rdata')
 
 
 # Clean demographics variables --------------------------------------------
-load('./ar.mi.tx.v20171023.1.rdata')
+
+setwd('Z:/Jeremy/GOBACK/Datasets/')
+load('./Combined Arkansas Michigan and Texas/Old/ar.mi.tx.v20171023.1.rdata')
 
 #' Rules for filtering extreme maternal and gestational ages were not 
 #' applied in AR data because they were agreed upon later.
@@ -79,7 +81,9 @@ save(armitx, file = './ar.mi.tx.v20171023.2.rdata')
 
 
 # Person-years ------------------------------------------------------------
-load('./ar.mi.tx.v20171023.2.rdata')
+
+setwd('Z:/Jeremy/GOBACK/Datasets/')
+load('./Combined Arkansas Michigan and Texas/Old/ar.mi.tx.v20171023.2.rdata')
 
 #' Decision was made 10/23/17 to exclude children with negative person-years
 #' values from time-to-event analysis completely, as there are so few.
