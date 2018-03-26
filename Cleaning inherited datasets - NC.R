@@ -542,4 +542,3 @@ save(nc, file = './nc.v20171107.3.rdata')
 
 rm(nc.dem, nc.can, nc.def, tmp)
 
-go <- 
