@@ -715,7 +715,6 @@ goback.coxmodels$p.val.coef.bon <- 0.05/(74-goback.coxmodels$rank+1)
 goback.coxmodels$p.val.coef.bon.delta <- goback.coxmodels$p.val.coef - goback.coxmodels$p.val.coef.bon
 goback.coxmodels <- filter(goback.coxmodels, p.val.coef.bon.delta < 0)
 
-
 top.hits <- arrange(goback.coxmodels, defect) 
 save(top.hits, file = 'goback.cox.ph.top.hits.v20180223.1.rdata')
 write.csv(top.hits, file = 'Z:/Jeremy/GOBACK/R outputs/goback.cox.ph.top.hits.v20180214.1.csv', row.names = FALSE)
