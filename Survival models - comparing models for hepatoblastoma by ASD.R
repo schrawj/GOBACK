@@ -132,32 +132,38 @@ ggsave('schoenfeld residuals for hepatoblastoma by ASD.pdf', scale = 2)
 
 # Parametric survival models ----------------------------------------------
 
+setwd('Z:/Jeremy/GOBACK/Datasets/')
+load('./goback.no.chrom.v20180122.1.rdata')
+
 goback.surv <- data.frame(time = goback.nochrom$person.yrs,
                           hepatoblastoma = goback.nochrom$hepato,
                           asd = goback.nochrom$atrialseptaldefect,
                           sex = factor(goback.nochrom$sex,
-                                       levels = c(1,2,9),
-                                       labels = c('Male','Female','Unknown')),
+                                       levels = c(1,2),
+                                       labels = c('Male','Female')),
                           m.age = goback.nochrom$m.age,
-                          state = goback.nochrom$state)
+                          state = goback.nochrom$state,
+                          birth.wt = goback.nochrom$birth.wt/100)
 
 goback.surv$time <- goback.surv$time + 0.00001
 
 #' It is more convenient to perform Weibull AFT regression via the WeibullReg 
 #' function in the SurvRegCensCov package, which requires survival.
 #' In this way we automatically back-transform estimates to HRs and associated CIs.
-goback.wei <- WeibullReg(Surv(time, hepatoblastoma) ~ asd + m.age + sex + state, data = goback.surv)
+goback.wei <- WeibullReg(Surv(time, hepatoblastoma) ~ asd + m.age + sex + state + birth.wt, data = goback.surv)
 goback.wei
 
 WeibullDiag(Surv(time, hepatoblastoma) ~ asd, data = goback.surv)
 
-goback.loglog <- survreg(Surv(goback.surv$time, goback.surv$hepatoblastoma) ~ goback.surv$asd + goback.surv$sex + goback.surv$m.age + goback.surv$state, 
+goback.loglog <- survreg(Surv(goback.surv$time, goback.surv$hepatoblastoma) ~ goback.surv$asd + goback.surv$sex + goback.surv$m.age + goback.surv$state +
+                           goback.surv$birth.wt, 
                          dist = 'loglogistic')
 summary(goback.loglog)
 
-print.ci(-7.2568,0.798,2.7) # ASD
-print.ci(0.9572,0.407,2.7) # Female sex
-print.ci(-0.0372,0.032,2.7) # Maternal age
-print.ci(0.4948,1.153,2.7) # MI
-print.ci(-2.2686,1.12,2.7) # NC
-print.ci(-1.3475,1.057,2.7) # TX
+print.ci(-5.7607, 0.8339, exp(1.0068)) # ASD
+print.ci(1.1843, 0.4265, exp(1.0068)) # Female sex
+print.ci(-0.0388, 0.0329, exp(1.0068)) # Maternal age
+print.ci(0.3816, 1.1677, exp(1.0068)) # MI
+print.ci(-2.3427, 1.1657, exp(1.0068)) # NC
+print.ci(-1.4336, 1.0729, exp(1.0068)) # TX
+print.ci(0.1935, 0.0293, exp(1.0068)) #Birthweight

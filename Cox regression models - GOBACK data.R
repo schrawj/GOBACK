@@ -1402,3 +1402,24 @@ rm(goback.chrom, j, tab); gc()
 
 
 
+
+# eTable 2 ----------------------------------------------------------------
+
+#' Need to re-run model for risk of hepatoblastoma among kids with ASD in
+#' non-chromosomal set, adjusting for BW.
+load('./goback.no.chrom.v20180122.1.rdata')
+
+
+goback.surv <- data.frame(time = goback.nochrom$person.yrs,
+                          cancer = goback.nochrom$hepato,
+                          defect = goback.nochrom$atrialseptaldefect,
+                          sex = factor(goback.nochrom$sex,
+                                       levels = c(1,2),
+                                       labels = c('Male','Female')),
+                          m.age = goback.nochrom$m.age,
+                          state = goback.nochrom$state,
+                          birth.wt = goback.nochrom$birth.wt/100)
+
+cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex + state + birth.wt, data = goback.surv)
+summary(cox)
+
