@@ -1010,6 +1010,47 @@ save(goback, file = 'goback.v20180216.1.rdata')
 
 
 
+# Remove NA values in TX non-BD kids --------------------------------------
+
+#' Texas kids with no birth defects have NA values for defect.total.
+#' Convert to zero.
+
+#' Non-chromosomal set.
+setwd('Z:/Jeremy/GOBACK/Datasets/')
+load('./goback.no.chrom.v20180122.1.rdata') 
+
+table(goback.nochrom$state, goback.nochrom$defect.total, useNA = 'always')
+goback.nochrom$defect.total <- ifelse(goback.nochrom$state == 'TX' & is.na(goback.nochrom$defect.total), 0, goback.nochrom$defect.total)
+table(goback.nochrom$state, goback.nochrom$defect.total, useNA = 'always')
+
+save(goback.nochrom, file = './goback.nochrom.v20180419.rdata')
+
+rm(goback.nochrom); gc()
+
+#' Chromosomal set.
+load('./goback.chrom.v20180122.1.rdata')
+
+table(goback.chrom$state, goback.chrom$defect.total, useNA = 'always')
+goback.chrom$defect.total <- ifelse(goback.chrom$state == 'TX' & is.na(goback.chrom$defect.total), 0, goback.chrom$defect.total)
+table(goback.chrom$state, goback.chrom$defect.total, useNA = 'always')
+
+save(goback.chrom, file = './goback.chrom.v20180419.rdata')
+
+rm(goback.chrom); gc()
+
+#' Overall set.
+load('./goback.v20180216.1.rdata')
+
+table(goback$state, goback$defect.total, useNA = 'always')
+goback$defect.total <- ifelse(goback$state == 'TX' & is.na(goback$defect.total), 0, goback$defect.total)
+table(goback$state, goback$defect.total, useNA = 'always')
+
+save(goback, file = './goback.v20180419.rdata')
+
+rm(goback); gc()
+
+
+
 # Write final datasets to csv ---------------------------------------------
 
 #' God willing, those are the last edits I make to these datasets.
