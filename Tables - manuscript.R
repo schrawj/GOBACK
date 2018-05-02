@@ -184,7 +184,7 @@ rm(goback.chrom, cox.coef, estimates, test.ph, tab, i, j); gc()
 
 # Table 3: Non-chromosomal defects ----------------------------------------
 
-load('goback.no.chrom.v20180122.1.rdata')
+load('goback.nochrom.v20180419.rdata')
 
 goback.nochrom <- goback.nochrom[,c(1:3,6,7,9,15,16,107:147,152)]; gc()
 
@@ -419,3 +419,113 @@ save(heatmap, file = 'Z:/Jeremy/GOBACK/Datasets/figure1.v20180126.1.rdata')
 
 
 
+
+
+# Etable 5 ----------------------------------------------------------------
+
+#' Risk of any cancer among children with specific BDs.  Only in TX, only 
+#' cases DX'd 1 year of age or greater.
+load('goback.nochrom.v20180419.rdata')
+
+goback.nochrom$exclude <- ifelse(goback.nochrom$cancer == 1 & goback.nochrom$person.yrs < 1, 1, 0)
+goback.nochrom <- filter(goback.nochrom, state == 'TX')
+goback.nochrom <- filter(goback.nochrom, exclude == 0)
+goback.nochrom <- goback.nochrom[,c(1:3,6,7,9,15,22:94,152,103)]; gc()
+
+for (i in 8:80){
+  
+  tab <- table(goback.nochrom[,i], goback.nochrom$cancer)[2,2]
+  
+  if (tab >= 1){
+    
+    goback.surv <- data.frame(time = goback.nochrom$person.yrs,
+                              cancer = goback.nochrom$cancer,
+                              defect = goback.nochrom[,i],
+                              sex = factor(goback.nochrom$sex,
+                                           levels = c(1,2),
+                                           labels = c('Male','Female')),
+                              m.age = goback.nochrom$m.age)      
+    
+    cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex, data = goback.surv)
+    cox.coef <- summary(cox)$coefficients
+
+    rm(cox, goback.surv); gc()
+    
+    estimates <- data.frame(defect = names(goback.nochrom[i]), 
+                            cancer = 'any.cancer', 
+                            HR = exp(cox.coef[1,1]), 
+                            ci.lower = exp(cox.coef[1,1]-(1.96*cox.coef[1,3])), 
+                            ci.upper = exp(cox.coef[1,1]+(1.96*cox.coef[1,3])),
+                            p.value.coef = cox.coef[1,5],
+                            num.comorbid = tab)
+    
+    write.table(estimates, file = 'Z:/Jeremy/GOBACK/R Outputs/etable5.csv', sep=',', append = TRUE, 
+                row.names = FALSE, col.names = FALSE)
+  }
+  
+  else{
+    
+    next
+    
+  }
+  
+}
+
+rm(list = ls()); gc()
+
+load('goback.chrom.v20180419.rdata')
+
+goback.chrom$exclude <- ifelse(goback.chrom$cancer == 1 & goback.chrom$person.yrs < 1, 1, 0)
+goback.chrom <- filter(goback.chrom, state == 'TX')
+goback.chrom <- filter(goback.chrom, exclude == 0)
+
+for (i in 95:101){
+  
+  tab <- table(goback.chrom[,i], goback.chrom$cancer)[2,2]
+  
+  if (tab >= 1){
+    
+    goback.surv <- data.frame(time = goback.chrom$person.yrs,
+                              cancer = goback.chrom$cancer,
+                              defect = goback.chrom[,i],
+                              sex = factor(goback.chrom$sex,
+                                           levels = c(1,2),
+                                           labels = c('Male','Female')),
+                              m.age = goback.chrom$m.age)      
+    
+    cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex, data = goback.surv)
+    cox.coef <- summary(cox)$coefficients
+    
+    rm(cox, goback.surv); gc()
+    
+    estimates <- data.frame(defect = names(goback.chrom[i]), 
+                            cancer = 'any.cancer', 
+                            HR = exp(cox.coef[1,1]), 
+                            ci.lower = exp(cox.coef[1,1]-(1.96*cox.coef[1,3])), 
+                            ci.upper = exp(cox.coef[1,1]+(1.96*cox.coef[1,3])),
+                            p.value.coef = cox.coef[1,5],
+                            num.comorbid = tab)
+    
+    write.table(estimates, file = 'Z:/Jeremy/GOBACK/R Outputs/etable5.csv', sep=',', append = TRUE, 
+                row.names = FALSE, col.names = FALSE)
+  }
+  
+  else{
+    
+    next
+    
+  }
+  
+}
+
+rm(list = ls()); gc()
+
+
+# Scratch paper -----------------------------------------------------------
+
+#' This is a long list.  Let's convert it into a format that requires less typing to transpose to a word doc.
+results <- read.csv(file='Z:/Jeremy/GOBACK/R outputs/goback.any.cancer.by.nonchromosomal.defect.csv', 
+                    header = TRUE, stringsAsFactors = FALSE)
+results$hr.ci <- paste0(results$HR, ' (',results$ci.lower,'-',results$ci.upper,')')
+results <- results[,c(1,8,9)]
+write.csv(results, file = 'C:/Users/schraw/desktop/results.csv', row.names = FALSE)
