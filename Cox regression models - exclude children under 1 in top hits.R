@@ -192,6 +192,46 @@ rm(goback.nochrom, cox, cox.coef, test.ph, surv.data, estimates, tab, i, nonchro
 
 
 
+# Generate Cox models for any CBT in kids >1 yr in TX ---------------------
+
+require(dplyr); require(survival)
+
+setwd('Z:/Jeremy/GOBACK/')
+load('./Datasets/goback.nochrom.v20180419.rdata')
+
+goback.nochrom <- filter(goback.nochrom, state == 'TX')
+goback.nochrom <- filter(goback.nochrom, person.yrs >= 1)
+
+tab <- table(goback.nochrom$hydrocephalus.wo.spinabifida, goback.nochrom$cns.any)[2,2]
+
+goback.surv <- data.frame(time = goback.nochrom$person.yrs,
+                          cancer = goback.nochrom$cns.any,
+                          defect = goback.nochrom$hydrocephalus.wo.spinabifida,
+                          sex = factor(goback.nochrom$sex,
+                                       levels = c(1,2),
+                                       labels = c('Male','Female')),
+                          m.age = goback.nochrom$m.age)      
+
+cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex, data = goback.surv)
+cox.coef <- summary(cox)$coefficients
+
+rm(cox, goback.surv); gc()
+
+estimates <- data.frame(defect = 'hydrocephalus.wo.spinabifida', 
+                        cancer = 'any.cancer', 
+                        HR = exp(cox.coef[1,1]), 
+                        ci.lower = exp(cox.coef[1,1]-(1.96*cox.coef[1,3])), 
+                        ci.upper = exp(cox.coef[1,1]+(1.96*cox.coef[1,3])),
+                        p.value.coef = cox.coef[1,5],
+                        num.comorbid = tab)
+print(estimates)
+
+#' Have just entered directly into 'GOBACK Jama Peds Tables v2018502.docx'.
+#' Too lazy to write one row to a csv file.
+rm(list = ls()); gc()
+
+
+
 # Side-by-side comparison of effect estimates overall and w/o infa --------
 
 load('./Datasets/goback.cox.ph.top.hits.v20180223.2.rdata')

@@ -418,13 +418,10 @@ save(heatmap, file = 'Z:/Jeremy/GOBACK/Datasets/figure1.v20180126.1.rdata')
 
 
 
-
-
-
 # Etable 5 ----------------------------------------------------------------
 
-#' Risk of any cancer among children with specific BDs.  Only in TX, only 
-#' cases DX'd 1 year of age or greater.
+#' Risk of any cancer among children with specific BDs.  
+#' Only Texas. Only cases DX'd 1 year of age or greater.
 load('goback.nochrom.v20180419.rdata')
 
 goback.nochrom$exclude <- ifelse(goback.nochrom$cancer == 1 & goback.nochrom$person.yrs < 1, 1, 0)
@@ -520,12 +517,23 @@ for (i in 95:101){
 
 rm(list = ls()); gc()
 
+#' Let's load the output back in and cbind it to the original table 4.
+setwd('Z:/Jeremy/GOBACK/R outputs/')
 
-# Scratch paper -----------------------------------------------------------
+#' Have rounded HR and CI columns to 2 decimal places in Excel for convenience.
+tab.sens <- read.csv(file = './eTable5.csv', header = TRUE, stringsAsFactors = FALSE)
+tab.og.nochrom <- read.csv(file = './table 4 nochrom.csv', header = TRUE, stringsAsFactors = FALSE)
+tab.og.chrom <- read.csv(file = './table 4 chrom.csv', header = TRUE, stringsAsFactors = FALSE)
 
-#' This is a long list.  Let's convert it into a format that requires less typing to transpose to a word doc.
-results <- read.csv(file='Z:/Jeremy/GOBACK/R outputs/goback.any.cancer.by.nonchromosomal.defect.csv', 
-                    header = TRUE, stringsAsFactors = FALSE)
-results$hr.ci <- paste0(results$HR, ' (',results$ci.lower,'-',results$ci.upper,')')
-results <- results[,c(1,8,9)]
-write.csv(results, file = 'C:/Users/schraw/desktop/results.csv', row.names = FALSE)
+tab.og <- select(rbind(tab.og.chrom, tab.og.nochrom), -p.val.zph); rm(tab.og.chrom, tab.og.nochrom)
+
+etable5 <- rename(left_join(tab.og, tab.sens, by = c('defect','cancer')),
+                            num.comorbid.sensitivity = n.comorbid)
+
+etable5$hr <- with(etable5, paste0(hr.x,' (',ci.lower.x,'-',ci.upper.x,')'))
+etable5$hr.sensitivity <- with(etable5, paste0(hr.y,' (',ci.lower.y,'-',ci.upper.y,')'))
+etable5$change.flag <- ifelse((etable5$hr.x/etable5$hr.y <= 0.5 | etable5$hr.x/etable5$hr.y >= 1.5) | 
+                              (etable5$ci.lower.x > 1 & etable5$ci.lower.y < 1), 1, 0)
+
+tmp <- select(etable5, defect, cancer, hr, hr.sensitivity, change.flag, num.comorbid, num.comorbid.sensitivity)
+write.csv(tmp, file = 'Z:/Jeremy/GOBACK/R outputs/eTable5.sidebyside.csv', row.names = FALSE)
