@@ -1051,6 +1051,39 @@ rm(goback); gc()
 
 
 
+
+# Remove NA values from majordefect.total ---------------------------------
+
+load('./goback.nochrom.v20180419.rdata')
+
+table(goback.nochrom$majordefect.total, goback.nochrom$any.birthdefect, useNA = 'ifany')
+goback.nochrom$majordefect.total <- ifelse(is.na(goback.nochrom$majordefect.total) & goback.nochrom$any.birthdefect == 0, 0, goback.nochrom$majordefect.total)
+table(goback.nochrom$majordefect.total, goback.nochrom$any.birthdefect, useNA = 'ifany')
+
+save(goback.nochrom, file = './goback.nochrom.v20180507.rdata')
+
+rm(list = ls()); gc()
+
+load('./goback.chrom.v20180419.rdata')
+
+table(goback.chrom$majordefect.total, goback.chrom$any.birthdefect, useNA = 'ifany')
+goback.chrom$majordefect.total <- ifelse(is.na(goback.chrom$majordefect.total) & goback.chrom$any.birthdefect == 0, 0, goback.chrom$majordefect.total)
+table(goback.chrom$majordefect.total, goback.chrom$any.birthdefect, useNA = 'ifany')
+
+save(goback.chrom, file = './goback.chrom.v20180507.rdata')
+
+rm(list = ls()); gc()
+
+load('./goback.v20180419.rdata')
+
+table(goback$majordefect.total, goback$any.birthdefect, useNA = 'ifany')
+goback$majordefect.total <- ifelse(is.na(goback$majordefect.total) & goback$any.birthdefect == 0, 0, goback$majordefect.total)
+table(goback$majordefect.total, goback$any.birthdefect, useNA = 'ifany')
+
+save(goback, file = './goback.v20180507.rdata')
+
+rm(list = ls()); gc()
+
 # Write final datasets to csv ---------------------------------------------
 
 #' God willing, those are the last edits I make to these datasets.
