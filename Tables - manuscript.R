@@ -42,10 +42,34 @@ mantelhaen.test(tmp.xtab)
 
 # Table 2 -----------------------------------------------------------------
 
-load('goback.v20180125.1.rdata')
+load('goback.v20180517.rdata')
 
 #' Pare down the datasaet to help with performance.
 goback <- goback[, c(1:16,103)]
+
+#' Collapse plurality to singleton vs multiple.
+goback$plu.cat <- factor(ifelse(goback$plu > 1, 1, 0),
+                         levels = c(0,1),
+                         labels = c('singleton','multiple'))
+
+#' The simplified version of the table will compare children only by birth defects status.
+for (i in c(3,11,4,17, 18)){
+  print(names(goback[i]))
+  print(gmodels::CrossTable(goback[,i], goback$any.birthdefect, prop.t = FALSE, prop.chisq = FALSE, prop.r = FALSE, chisq = TRUE))
+}
+
+for (i in c(7,9,6)){
+  print(names(goback[i]))
+  print(aggregate(goback[,i] ~ goback$any.birthdefect, data = goback, mean))
+  print(aggregate(goback[,i] ~ goback$any.birthdefect, data = goback, sd))
+  print(t.test(goback[,i] ~ goback$any.birthdefect, data = goback, na.rm = TRUE))
+}
+
+
+
+
+
+
 
 with(subset(goback, any.birthdefect == 0), CrossTable(sex, cancer, prop.chisq = FALSE, chisq = TRUE))
 with(subset(goback, any.birthdefect == 1), CrossTable(sex, cancer, prop.chisq = FALSE, chisq = TRUE))
