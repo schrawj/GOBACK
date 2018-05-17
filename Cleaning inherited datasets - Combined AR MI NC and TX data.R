@@ -1084,6 +1084,43 @@ save(goback, file = './goback.v20180507.rdata')
 
 rm(list = ls()); gc()
 
+
+
+# Replace 9999 with NA for plurality --------------------------------------
+
+#' Actually, I suspect 9 is also a missing value code in one or more states.
+load('./goback.nochrom.v20180507.rdata')
+
+table(goback.nochrom$plu, useNA = 'ifany')
+goback.nochrom$plu <- ifelse(goback.nochrom$plu == 9999 | goback.nochrom$plu == 9, NA, goback.nochrom$plu)
+table(goback.nochrom$plu, useNA = 'ifany')
+
+save(goback.nochrom, file = './goback.nochrom.v20180517.rdata')
+
+rm(list = ls()); gc()
+
+load('./goback.chrom.v20180507.rdata')
+
+table(goback.chrom$plu, useNA = 'ifany')
+goback.chrom$plu <- ifelse(goback.chrom$plu == 9999 | goback.chrom$plu == 9, NA, goback.chrom$plu)
+table(goback.chrom$plu, useNA = 'ifany')
+
+save(goback.chrom, file = './goback.chrom.v20180517.rdata')
+
+rm(list = ls()); gc()
+
+load('./goback.v20180507.rdata')
+
+table(goback$plu, useNA = 'ifany')
+goback$plu <- ifelse(goback$plu == 9999 | goback$plu == 9, NA, goback$plu)
+table(goback$plu, useNA = 'ifany')
+
+save(goback, file = './goback.v20180517.rdata')
+
+rm(list = ls()); gc()
+
+
+
 # Write final datasets to csv ---------------------------------------------
 
 #' God willing, those are the last edits I make to these datasets.
