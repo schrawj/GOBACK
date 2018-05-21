@@ -9,8 +9,7 @@
 # Prep environment --------------------------------------------------------
 require(dplyr); require(stringr); require(ggplot2); require(ggthemes)
 
-setwd('Z:/Jeremy/GOBACK/Datasets/') 
-load('goback.cox.ph.results.v20180124.1.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/goback.cox.ph.results.v20180124.1.rdata')
 
 
 
@@ -137,6 +136,10 @@ bd.cc.associations$defect <- factor(bd.cc.associations$defect,
                                                'Any Respiratory System Anomaly', 'Oral Clefts', 'Any Digestive System Anomaly', 'Any Genitourinary Anomaly',
                                                'Any Musculoskeletal Anomaly', 'Any Integument Anomaly', 'Any Chromosomal Anomaly'))
 
+
+
+# Print deprecated plots --------------------------------------------------
+
 #' Coarse color gradient for significance.
 plot <-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
   geom_tile(aes(fill = signif.cat), color = 'black') + 
@@ -168,4 +171,19 @@ plot3 <-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
   labs(x = "Cancer", y = "Anomaly") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45,hjust = 1))
+print(plot3)
+
+
+
+# Print poduction plot ----------------------------------------------------
+
+#' Intermediate number of gradations, all red.
+#' Do not plot title, or force <1 category to display in legend.
+plot3 <-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
+  geom_tile(aes(fill = signif.cat.int), color = 'black') + 
+  scale_fill_manual(values = c('grey75','indianred1','firebrick3','red','darkred','white')) +
+  guides(fill = guide_legend(title='Hazard Ratio')) +
+  labs(x = "Cancer", y = "Anomaly") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 print(plot3)
