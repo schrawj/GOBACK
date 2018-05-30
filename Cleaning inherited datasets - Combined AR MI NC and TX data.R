@@ -1121,6 +1121,75 @@ rm(list = ls()); gc()
 
 
 
+# Replace NA values for NC cancer variables -------------------------------
+
+#' NC Children diagnosed with cancer have an NA value for any specific cancer
+#' variable if they were not diagnosed with THAT cancer.  Replace with zeroes.
+
+load('./goback.v20180517.rdata')
+
+for (i in 108:147){
+  goback[,i] <- ifelse(goback$state == 'NC' & is.na(goback[,i]), 0, goback[,i])
+}
+
+save(goback, file = './goback.v20180530.1.rdata')
+
+rm(list = ls()); gc()
+
+load('./goback.nochrom.v20180517.rdata')
+
+for (i in 108:147){
+  goback.nochrom[,i] <- ifelse(goback.nochrom$state == 'NC' & is.na(goback.nochrom[,i]), 0, goback.nochrom[,i])
+}
+
+save(goback.nochrom, file = './goback.nochrom.v20180530.1.rdata')
+
+rm(list = ls()); gc()
+
+load('./goback.chrom.v20180517.rdata')
+
+for (i in 108:147){
+  goback.chrom[,i] <- ifelse(goback.chrom$state == 'NC' & is.na(goback.chrom[,i]), 0, goback.chrom[,i])
+}
+
+save(goback.chrom, file = './goback.chrom.v20180530.1.rdata')
+
+rm(list = ls()); gc()
+
+
+
+# Remove laterality values in children with no cancer ---------------------
+
+#' A number of TX children without any cancer have values for laterality.
+#' I can't find any record of these kids in the cancer registry data.
+#' I am prepared to say we should just remove the values and replace with
+#' NA.
+
+load('./goback.v20180530.1.rdata')
+
+goback$laterality1 <- ifelse(goback$state == 'TX' & goback$cancer == 0, NA, goback$laterality1)
+
+save(goback, file = './goback.v20180530.2.rdata')
+
+rm(list = ls()); gc()
+
+load('./goback.nochrom.v20180530.1.rdata')
+
+goback.nochrom$laterality1 <- ifelse(goback.nochrom$state == 'TX' & goback.nochrom$cancer == 0, NA, goback.nochrom$laterality1)
+
+save(goback.nochrom, file = './goback.nochrom.v20180530.2.rdata')
+
+rm(list = ls()); gc()
+
+load('./goback.chrom.v20180530.1.rdata')
+
+goback.chrom$laterality1 <- ifelse(goback.chrom$state == 'TX' & goback.chrom$cancer == 0, NA, goback.chrom$laterality1)
+
+save(goback.chrom, file = './goback.chrom.v20180530.2.rdata')
+
+rm(list = ls()); gc()
+
+
 # Write final datasets to csv ---------------------------------------------
 
 #' God willing, those are the last edits I make to these datasets.
