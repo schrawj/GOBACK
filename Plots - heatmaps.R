@@ -187,7 +187,6 @@ generate.heatmap.succinct(names(mi[103]), 2.5, 'Congenital Anomalies of the Inte
 
 
 
-
 # Heatmaps: generate verbose plots ----------------------------------------
 load("Z:/Jeremy/GOBACK/Datasets/crude.bd.cc.associations.v20171031.2.rdata")
 load("Z:/Jeremy/GOBACK/Datasets/Michigan/mi.v20171006.4.rdata")
@@ -249,10 +248,7 @@ generate.heatmap.succinct(names(mi[c(22,41,69,75,84,104,92,103)]), 2.5, 'Congeni
 
 
 
-
 # New heatmaps: recoding --------------------------------------------------
-
-
 
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
