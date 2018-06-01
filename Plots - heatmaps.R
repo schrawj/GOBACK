@@ -407,7 +407,7 @@ print(plot)
 
 ggsave(filename = 'cns.defects.pdf', scale = 1.75)
 
-# New heatmaps: CNS tumros ------------------------------------------------
+# New heatmaps: CNS tumors ------------------------------------------------
 vector.of.cancers <- c('astro','pnet','ependymoma','gct.intra','medullo','cns.other','cns.any')
 data <- arrange(filter(bd.cc.associations, cancer %in% vector.of.cancers), desc(cancer))
 
