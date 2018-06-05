@@ -204,6 +204,66 @@ rm(list = ls()); gc()
 
 
 
+# Cox PH model for any defect-any CBT -------------------------------------
+
+require(survival)
+
+setwd('Z:/Jeremy/GOBACK/Datasets/')
+load('./goback.nochrom.v20180530.2.rdata')
+
+table(goback.nochrom$any.birthdefect, goback.nochrom$cns.any, useNA = 'ifany')
+
+goback.surv <- data.frame(studyid = goback.nochrom$studyid,
+                          time = goback.nochrom$person.yrs, 
+                          cancer = goback.nochrom$cns.any, 
+                          defect = goback.nochrom$any.birthdefect,
+                          sex = factor(goback.nochrom$sex, 
+                                       levels = c(1,2),
+                                       labels = c('Male','Female')),
+                          m.age = goback.nochrom$m.age,
+                          state = goback.nochrom$state)
+
+cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex + state, data = goback.surv)
+
+cox.coef <- as.data.frame(summary(cox)$coefficients)
+cox.coef$ci.lower <- exp(cox.coef$coef - (1.96*cox.coef$`se(coef)`))
+cox.coef$ci.upper <- exp(cox.coef$coef + (1.96*cox.coef$`se(coef)`))
+print(cox.coef)
+
+rm(list = ls()); gc()
+
+
+
+# Cox PH model for any CNS anomaly-any CBT --------------------------------
+
+require(survival)
+
+setwd('Z:/Jeremy/GOBACK/Datasets/')
+load('./goback.nochrom.v20180530.2.rdata')
+
+table(goback.nochrom$conganomalies.cns, goback.nochrom$cns.any, useNA = 'ifany')
+
+goback.surv <- data.frame(studyid = goback.nochrom$studyid,
+                          time = goback.nochrom$person.yrs, 
+                          cancer = goback.nochrom$cns.any, 
+                          defect = goback.nochrom$conganomalies.cns,
+                          sex = factor(goback.nochrom$sex, 
+                                       levels = c(1,2),
+                                       labels = c('Male','Female')),
+                          m.age = goback.nochrom$m.age,
+                          state = goback.nochrom$state)
+
+cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex + state, data = goback.surv)
+
+cox.coef <- as.data.frame(summary(cox)$coefficients)
+cox.coef$ci.lower <- exp(cox.coef$coef - (1.96*cox.coef$`se(coef)`))
+cox.coef$ci.upper <- exp(cox.coef$coef + (1.96*cox.coef$`se(coef)`))
+print(cox.coef)
+
+rm(list = ls()); gc()
+
+
+
 # CBT Cox PH models by number of defects ----------------------------------
 
 require(survival); require(tictoc)
