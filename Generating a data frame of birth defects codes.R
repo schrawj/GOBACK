@@ -1,32 +1,74 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
-#' 2017.11.08.
-#' 
-#' When you sum across the birth defects rows in GOBACK to ID kids w/at 
-#' least 1 defect, you find that there are 76,263 kids who were previously
-#' tagged by the any.birthdefect variable as having a defect, but are now
-#' not found to.
-#' 
-#' This could be the result of dropping some of the birth defects variables.
-#' 
-#' Interestingly, 64,000 of these kids are in MI, which has an improbably
-#' high incidence of birth defects (10%).
-#' 
-#' It will be tedious but I think I should try to cobble together a data
-#' frame of the original birth defects codes for the three states that 
-#' offered them.
+#' Generates a data frame of all the BPA codes for kids in TX and NC, and 
+#' another with the ICD codes for kids in MI.
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
+require(dplyr); require(stringr)
+
+load("Z:/Jeremy/GOBACK/Datasets/Texas/tx.raw.data.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Texas/tx.raw.data.bpa.codes.v20171106.rdata")
+
+tx.raw <- select(tx.raw, birthID, CASE_ID)
+tx.sel <- left_join(tx.bd, tx.raw, by = 'CASE_ID')
+tx.sel$studyid <- paste0('tx',tx.sel$birthID)
+tx.sel <- tx.sel[,c(70, 3:68)]
+
+for (i in 2:67){
+  tx.sel[, i] <- ifelse(str_length(tx.sel[, i]) == 2, paste0('0',tx.sel[, i],'.000'),
+                        ifelse(str_length(tx.sel[, i]) == 3,paste0(tx.sel[, i],'.000'),
+                               ifelse(str_length(tx.sel[, i]) == 5, paste0(tx.sel[, i], '00'), 
+                                      ifelse(str_length(tx.sel[, i]) == 6, paste0(tx.sel[, i], '0'), 
+                                             ifelse(str_length(tx.sel[, i]) == 7, tx.sel[, i], tx.sel[, i])))))
+}
+
+rm(tx.raw, tx.bd)
+
+load("Z:/Jeremy/GOBACK/Datasets/North Carolina/nc.birth.defect.data.rdata")
+
+#' Select only populated defects columns.
+nc.sel <- select(nc.bd, NCID, DX1:DX47)
+nc.sel$NCID <- paste0('nc',nc.sel$NCID)
+
+for (i in 2:48){
+  nc.sel[,i] <- ifelse(nc.sel[,i] == "", NA, nc.sel[,i]) 
+}
+
+for (i in 49:67){
+  nc.sel[,i] <- as.character(NA)
+}
+
+for (i in 2:67){
+  nc.sel[ ,i] <- ifelse(str_length(nc.sel[,i]) == 6, paste0(substr(nc.sel[,i], 1, 3), '.', substr(nc.sel[,i], 4, 6)), nc.sel[,i])
+}
+
+names(nc.sel) <- names(tx.sel)
+
+nc.sel <- nc.sel[!is.na(nc.sel$bpa1), ]
+
+bd.codes.txnc <- rbind(tx.sel, nc.sel)
+
+rm(nc.bd, tx.sel, nc.sel)
+
+load("Z:/Jeremy/GOBACK/Datasets/Michigan/mi.birthdefects.codes.rdata")
+
+bd.codes.mi <- mi.bd[, c(3, 110:133)]
+bd.codes.mi <- bd.codes.mi[!is.na(bd.codes.mi$ICD9COD1), ]
+names(bd.codes.mi) <- tolower(names(bd.codes.mi))
+bd.codes.mi$studyid <- paste0('mi',bd.codes.mi$studyid)
+
+rm(mi.bd)
+
+save(bd.codes.txnc, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
+save(bd.codes.mi, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180606.rdata')
+
+rm(list = ls());gc()
 
 
 
-# Prep environment --------------------------------------------------------
-require(dplyr)
-require(stringr)
+# Scratch paper -----------------------------------------------------------
 
-
-# User-defined functions --------------------------------------------------
 
 #' Actually a terrible name for this function: it computes whether there is ANY defect.
 compute.num.defect <- function(data.frame){ifelse(rowSums(data.frame[,2:67], na.rm = TRUE) >= 1, 1, 0)}
