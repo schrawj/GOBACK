@@ -1190,6 +1190,333 @@ save(goback.chrom, file = './goback.chrom.v20180530.2.rdata')
 rm(list = ls()); gc()
 
 
+
+# Flag syndromic defects in the non-chromosomal set: generate list --------
+
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+#' 2018.06.06.
+#' 
+#' I realized where performing analyses for BTEC that children with 
+#' certain syndromes are still included in the non-chromosomal set, 
+#' because the filtering that was performed was done to remove codes in the 
+#' 758 range.
+#' 
+#' We want to identify kids with certain codes:
+#' BPA 237.700, ICD9 237.7: neurofibromatosis
+#' BPA 759.500, ICD9 759.5: tuberous sclerosis
+#' BPA 759.800: possibly Costello or Noonan
+#' BPA 279.110: phenotypic DX of DiGeorge (though these should already be 
+#'              excluded)
+#' BPA 759.840: possibly Rubinstein-Taybi
+#' BPA 759.870: possibly Beckwith-Wiedemann 
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+
+require(dplyr)
+
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180606.rdata')
+
+
+
+tsc.txnc <- filter(bd.codes.txnc, bpa1 == '759.500')
+for (i in 3:67){
+  tmp <- filter(bd.codes.txnc, bd.codes.txnc[, i] == '759.900')
+  tsc.txnc <- rbind(tsc.txnc, tmp)
+}
+tsc.txnc <- tsc.txnc[!duplicated(tsc.txnc$studyid), ]
+tsc.mi <- filter(bd.codes.mi, icd9cod1 == '759.5')
+for (i in 3:25){
+  tmp <- filter(bd.codes.mi, bd.codes.mi[, i] == '759.9')
+  tsc.mi <- rbind(tsc.mi, tmp)
+}
+tsc.mi <- tsc.mi[!duplicated(tsc.mi$studyid), ]
+tsc.ids <- c(tsc.mi$studyid, tsc.txnc$studyid)
+
+
+
+neurofib.txnc <- filter(bd.codes.txnc, bpa1 == '237.700')
+for (i in 3:67){
+  tmp <- filter(bd.codes.txnc, bd.codes.txnc[, i] == '237.700')
+  neurofib.txnc <- rbind(neurofib.txnc, tmp)
+}
+neurofib.txnc <- neurofib.txnc[!duplicated(neurofib.txnc$studyid), ]
+neurofib.mi <- filter(bd.codes.mi, icd9cod1 == '237.7')
+for (i in 3:25){
+  tmp <- filter(bd.codes.mi, bd.codes.mi[, i] == '237.7')
+  neurofib.mi <- rbind(neurofib.mi, tmp)
+}
+neurofib.mi <- neurofib.mi[!duplicated(neurofib.mi$studyid), ]
+neurofib.ids <- c(neurofib.mi$studyid, neurofib.txnc$studyid)
+
+
+
+cost.noon.txnc <- filter(bd.codes.txnc, bpa1 == '759.800')
+for (i in 3:67){
+  tmp <- filter(bd.codes.txnc, bd.codes.txnc[, i] == '759.800')
+  cost.noon.txnc <- rbind(cost.noon.txnc, tmp)
+}
+cost.noon.txnc <- cost.noon.txnc[!duplicated(cost.noon.txnc$studyid), ]
+cost.noon.ids.txnc <- cost.noon.txnc$studyid
+
+
+
+digeorge.txnc <- filter(bd.codes.txnc, bpa1 == '279.110')
+for (i in 3:67){
+  tmp <- filter(bd.codes.txnc, bd.codes.txnc[, i] == '279.110')
+  digeorge.txnc <- rbind(digeorge.txnc, tmp)
+}
+digeorge.txnc <- digeorge.txnc[!duplicated(digeorge.txnc$studyid), ]
+digeorge.mi <- filter(bd.codes.mi, icd9cod1 == '279.11')
+for (i in 3:25){
+  tmp <- filter(bd.codes.mi, bd.codes.mi[, i] == '279.11')
+  digeorge.mi <- rbind(digeorge.mi, tmp)
+}
+digeorge.mi <- digeorge.mi[!duplicated(digeorge.mi$studyid), ]
+digeorge.ids <- c(digeorge.mi$studyid, digeorge.txnc$studyid)
+
+
+
+rub.tay.txnc <- filter(bd.codes.txnc, bpa1 == '759.840')
+for (i in 3:67){
+  tmp <- filter(bd.codes.txnc, bd.codes.txnc[, i] == '759.840')
+  rub.tay.txnc <- rbind(rub.tay.txnc, tmp)
+}
+rub.tay.txnc <- rub.tay.txnc[!duplicated(rub.tay.txnc$studyid), ]
+rub.tay.ids.txnc <- rub.tay.txnc$studyid
+
+
+
+bws.txnc <- filter(bd.codes.txnc, bpa1 == '759.870')
+for (i in 3:67){
+  tmp <- filter(bd.codes.txnc, bd.codes.txnc[, i] == '759.870')
+  bws.txnc <- rbind(bws.txnc, tmp)
+}
+bws.txnc <- bws.txnc[!duplicated(bws.txnc$studyid), ]
+bws.ids.txnc <- bws.txnc$studyid
+
+
+
+syndromes.mi <- filter(bd.codes.mi, icd9cod1 == '759.89')
+for (i in 3:25){
+  tmp <- filter(bd.codes.mi, bd.codes.mi[, i] == '759.89')
+  syndromes.mi <- rbind(syndromes.mi, tmp)
+}
+syndromes.mi <- syndromes.mi[!duplicated(syndromes.mi$studyid), ]
+syndrome.ids.mi <- syndromes.mi$studyid
+
+
+
+syndrome.ids <- list(tuberous.sclerosis = tsc.ids, 
+                     neurofibromatosis = neurofib.ids, 
+                     digeorge = digeorge.ids,
+                     costello.noonan.txnc = cost.noon.ids.txnc, 
+                     rubinstein.taybi.txnc = rub.tay.ids.txnc,
+                     beckwith.wiedemann.tx.nc = bws.ids.txnc, 
+                     cot.noon.rub.tay.bws.mi = syndrome.ids.mi)
+
+save(syndrome.ids, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata')
+
+
+
+# Flag syndromic defects in the non-chromosomal set: count occurre --------
+
+load("Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180530.2.rdata")
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata')
+
+syndromic.birth.defects.cases <- as.data.frame(matrix(nrow = 1, ncol = 36))
+df.names <- c('syndrome', 'num.cases', 'mi.cases', 'nc.cases', 'tx.cases', 'num.comorbid.cases', names(goback.nochrom[108:137]))
+df.names <- df.names[c(1:29,31:36,30)]
+names(syndromic.birth.defects.cases) <- df.names
+syndromic.birth.defects.cases$syndrome <- as.character(syndromic.birth.defects.cases$syndrome)
+
+for (i in 1:7){
+
+tmp <- syndrome.ids[[i]]
+
+index.syndrome <- names(syndrome.ids[i])
+
+cases <- filter(goback.nochrom, studyid %in% tmp)
+cases.mi <- filter(cases, state == 'MI')
+cases.nc <- filter(cases, state == 'NC')
+cases.tx <- filter(cases, state == 'TX')
+
+comorbid.cases <- filter(cases, cancer == 1)
+
+new.syndrome <- data.frame (syndrome = index.syndrome,
+                            num.cases = nrow(cases),
+                            mi.cases = nrow(cases.mi),
+                            nc.cases = nrow(cases.nc),
+                            tx.cases = nrow(cases.tx),
+                            num.comorbid.cases = nrow(comorbid.cases),
+                            all = nrow(filter(comorbid.cases, all == 1)),
+                            aml = nrow(filter(comorbid.cases, aml == 1)),
+                            arms = nrow(filter(comorbid.cases, arms == 1)),
+                            astro = nrow(filter(comorbid.cases, astro == 1)),
+                            bone.other = nrow(filter(comorbid.cases, bone.other == 1)),
+                            cns.other = nrow(filter(comorbid.cases, cns.other == 1)),
+                            ependymoma = nrow(filter(comorbid.cases, ependymoma == 1)),
+                            epithe = nrow(filter(comorbid.cases, epithe == 1)),
+                            erms = nrow(filter(comorbid.cases, erms == 1)),
+                            ewing = nrow(filter(comorbid.cases, ewing == 1)),
+                            gct.extra = nrow(filter(comorbid.cases, gct.extra == 1)),
+                            gct.gonad = nrow(filter(comorbid.cases, gct.gonad == 1)),
+                            gct.intra = nrow(filter(comorbid.cases, gct.intra == 1)),
+                            hepatic.other = nrow(filter(comorbid.cases, hepatic.other == 1)),
+                            hepato = nrow(filter(comorbid.cases, hepato == 1)),
+                            hl = nrow(filter(comorbid.cases, hl == 1)),
+                            leu.other = nrow(filter(comorbid.cases, leu.other == 1)),
+                            lym.other = nrow(filter(comorbid.cases, lym.other == 1)),
+                            medullo = nrow(filter(comorbid.cases, medullo == 1)),
+                            nephro = nrow(filter(comorbid.cases, nephro == 1)),
+                            neuro = nrow(filter(comorbid.cases, neuro == 1)),
+                            nhl = nrow(filter(comorbid.cases, nhl == 1)),
+                            osteo = nrow(filter(comorbid.cases, osteo == 1)),
+                            pnet = nrow(filter(comorbid.cases, pnet == 1)),
+                            pns.other = nrow(filter(comorbid.cases, pns.other == 1)),
+                            renal.other = nrow(filter(comorbid.cases, renal.other == 1)),
+                            retino = nrow(filter(comorbid.cases, retino == 1)),
+                            rms.other = nrow(filter(comorbid.cases, rms.other == 1)),
+                            soft.other = nrow(filter(comorbid.cases, soft.other == 1)),
+                            other.any = nrow(filter(comorbid.cases, other.any == 1)))
+                            
+
+syndromic.birth.defects.cases <- rbind(syndromic.birth.defects.cases, new.syndrome)
+
+}
+
+syndromic.birth.defects.cases <- syndromic.birth.defects.cases[2:8, ]
+
+write.csv(syndromic.birth.defects.cases, file = 'Z:/Jeremy/GOBACK/R outputs/Syndromic cases/syndromic.case.counts.csv', row.names = FALSE)
+
+
+
+# Compute new variables for TSC and NF cases ------------------------------
+
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+#' 2018.06.11.
+#' 
+#' I discovered that children with tuberous sclerosis (TSC) and 
+#' neurofibromatosis (NF) were still in the non-chromosomal dataset.
+#' 
+#' In conversation with Philip we decided that these children should not be
+#' analyzed with this group, as they have known cancer predisposition 
+#' syndromes.  Thus, I will move them to the chromosomal set after 
+#' creating some new variables to reflect the new data partition:
+#' - any.genetic.anomaly: an indicator variable taking value 1 if the child
+#'   has either a chromosomal anomaly or a single-gene syndrome.
+#' - single.gene.anomaly: an indicator variable taking value 1 if the 
+#'   child has a DX of either TSC or NF, and 0 otherwise.
+#' - tsc: an indicator variable taking value 1 if the child has a BPA or 
+#'   ICD9 code for TSC (759.900 and 759.9, respectively).
+#' - nf: an indicator variable taking value 1 if the child has a BPA or 
+#'   ICD9 code for neurofibromatosis (237.700 and 237.7, respectively).
+#'
+#' Per the usual organization, each of these variables will take value NA
+#' if the child does NOT have that defect, but does have one or more other
+#' defects.
+#'
+#' In addition to this, we will completely exclude children who have the
+#' code for the clinical diagnosis of DiGeorge syndrome, but do not have
+#' the code for the accompanying genetic diagnosis.
+#' 
+#' Lastly, I will update each of the old birth defects variables such that 
+#' if they currently have value 0 and the child has TSC or NF, they are NA.
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+
+require(dplyr)
+
+load("Z:/Jeremy/GOBACK/Datasets/goback.v20180530.2.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata")
+
+#' Initialize and compute new BD variables.
+goback[ ,153:156] <- 0
+names(goback) <- c(names(goback)[1:152],'any.genetic.anomaly','single.gene.anomaly','tsc','nf')
+
+goback$single.gene.anomaly <- ifelse(goback$studyid %in% syndrome.ids[[1]] | goback$studyid %in% syndrome.ids[[2]], 1, goback$single.gene.anomaly)
+goback$single.gene.anomaly <- ifelse(goback$any.birthdefect == 1 & goback$single.gene.anomaly == 0, NA, goback$single.gene.anomaly)
+
+goback$any.genetic.anomaly <- ifelse(goback$single.gene.anomaly == 1 | goback$chromosomalanomalies == 1, 1, goback$any.genetic.anomaly)
+goback$any.genetic.anomaly <- ifelse(goback$any.birthdefect == 1 & goback$any.genetic.anomaly == 0, NA, goback$any.genetic.anomaly)
+
+goback$tsc <- ifelse(goback$studyid %in% syndrome.ids[[1]], 1, 0)
+goback$tsc <- ifelse(goback$tsc == 0 & goback$any.birthdefect == 1, NA, goback$tsc)
+
+goback$nf <- ifelse(goback$studyid %in% syndrome.ids[[2]], 1, 0)
+goback$nf <- ifelse(goback$nf == 0 & goback$any.birthdefect == 1, NA, goback$nf)
+
+#' Definitively identify DiGeorge syndrome cases without genetic DX.
+#' This distinction can only be established in the TX and NC data.
+#' Exclude TX and NC children who have only a clinical diagnosis of DiGeorge.
+tmp <- filter(bd.codes.txnc, studyid %in% syndrome.ids[[3]])
+
+ids.with.karyotype <- as.character()
+
+for (i in 1:507){
+  
+  new.id <- as.character(tmp[i, ])
+  
+  if('758.380' %in% new.id){
+    
+    new.id <- new.id[[1]]
+    ids.with.karyotype <- c(ids.with.karyotype, new.id)
+    
+  }
+  
+  else {
+    
+    next
+    
+  }
+  
+}
+
+#' Remove children with only clinical DX.
+#' Have verified that all children with both clinical DX and genetic DX 
+#' are currently counted as having the synrdome.
+ids.to.drop <- setdiff(as.character(tmp$studyid), ids.with.karyotype)
+goback <- filter(goback, !(studyid %in% ids.to.drop))
+
+rm(bd.codes.mi, bd.codes.txnc, i, ids, ids.to.drop, ids.with.karyotype, new.id); gc()
+
+#' Have verified that existing BD variables to not need to be updated based
+#' on new TSC and NF variables.  
+#' Rearrange and rename columns in a more logical order.
+goback <- goback[, c(1:94,153:156,95:152)]
+names(goback)[99] <- 'any.chromosomal.anomaly'
+
+save(goback, file = 'Z:/Jeremy/GOBACK/Datasets/goback.v20180611.rdata')
+
+rm(list = ls()); gc()
+
+
+
+# Split dataset into new chromosomal and non-chromosomal sets -------------
+
+require(dplyr)
+
+load('Z:/Jeremy/GOBACK/Datasets/goback.v20180611.rdata')
+
+chrom <- filter(goback, any.birthdefect == 1 & any.genetic.anomaly == 1)
+no.chrom <- filter(goback, any.birthdefect == 1 & is.na(any.genetic.anomaly))
+control <- filter(goback, any.birthdefect == 0)
+
+rm(goback); gc()
+
+goback.nochrom <- rbind(no.chrom, control)
+save(goback.nochrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180611.rdata')
+rm(goback.nochrom, no.chrom); gc()
+
+goback.chrom <- rbind(chrom, control)
+save(goback.chrom, file = 'goback.chrom.v20180611.rdata')
+rm(list = ls()); gc()
+
+
+
 # Write final datasets to csv ---------------------------------------------
 
 #' God willing, those are the last edits I make to these datasets.
