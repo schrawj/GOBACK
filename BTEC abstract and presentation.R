@@ -444,3 +444,66 @@ for (i in c(154,111,126,114,132)){
 }
 
 save(cbt.models, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded Datasets/cbt.risk.by.num.defects.no.syndromic.cases.rdata')
+
+# Re-run certain specific associations for tables -------------------------
+
+require(dplyr); require(survival)
+
+setwd('Z:/Jeremy/GOBACK/Datasets/')
+load('./goback.nochrom.v20180530.2.rdata')
+load('./Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata')
+
+#' Exclude children with neurofibromatosis or TSC.
+exclusions <- c(syndrome.ids$tuberous.sclerosis, syndrome.ids$neurofibromatosis)
+
+goback.nochrom <- filter(goback.nochrom, !(studyid %in% exclusions))
+
+#' Initialize all the stuff I need for the loop.
+cancers <- c(rep('astro',3),rep('medullo', 2), 'ependymoma')
+anomalies <- c("hydrocephalus.wo.spinabifida",'craniosynostosis',"patentductusarteriosis",'craniosynostosis','pyloric.stenosis',"hydrocephalus.wo.spinabifida")
+
+estimates <- as.data.frame(matrix(nrow = 1, ncol = 8))
+names(estimates) <- c('anomaly', 'cancer', 'hr', 'ci.lower', 'ci.upper', 'p.val.coef', 'num.comorbid', 'set')
+
+for (i in 1:6){ 
+  
+  index.cancer <- cancers[i]
+  index.anomaly <- anomalies[i]
+  comorbid.cases <- table(goback.nochrom[,index.anomaly], goback.nochrom[,index.cancer])[2,2]
+  
+  if (comorbid.cases >= 5){
+
+    goback.surv <- data.frame(time = goback.nochrom$person.yrs,
+                              cancer = goback.nochrom[,index.cancer],
+                              defect = goback.nochrom[,index.anomaly],
+                              sex = factor(goback.nochrom$sex,
+                                           levels = c(1,2),
+                                           labels = c('Male','Female')),
+                              m.age = goback.nochrom$m.age,
+                              state = goback.nochrom$state.num)      
+    
+    cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex + state, data = goback.surv)
+    cox.coef <- summary(cox)$coefficients
+    
+    new.estimates <- data.frame(anomaly = index.anomaly, 
+                                cancer = index.cancer, 
+                                hr = exp(cox.coef[1,1]), 
+                                ci.lower = exp(cox.coef[1,1]-(1.96*cox.coef[1,3])), 
+                                ci.upper = exp(cox.coef[1,1]+(1.96*cox.coef[1,3])),
+                                p.val.coef = cox.coef[1,5],
+                                num.comorbid = comorbid.cases,
+                                set = 'goback.nochrom.nosyn')
+    
+    estimates <- rbind(estimates, new.estimates)
+    
+  }
+  
+  else{
+    
+    next
+    
+  }
+}
+
+estimates <- estimates[2:7, ]
+print(estimates)
