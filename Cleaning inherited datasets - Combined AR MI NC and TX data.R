@@ -1512,7 +1512,7 @@ save(goback.nochrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180611.
 rm(goback.nochrom, no.chrom); gc()
 
 goback.chrom <- rbind(chrom, control)
-save(goback.chrom, file = 'goback.chrom.v20180611.rdata')
+save(goback.chrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.chrom.v20180611.rdata')
 rm(list = ls()); gc()
 
 
