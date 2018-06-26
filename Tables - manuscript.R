@@ -443,7 +443,7 @@ rm(list = ls()); gc()
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
-load("Z:/Jeremy/GOBACK/Datasets/goback.cox.ph.results.v20180124.1.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Expanded datasets/goback.coxph.results.v20180612.rdata")
 #' TODO: patterns may need to change; or alternatively, rename variables to comply with patterns.
 pat1 <- 'conganomalies.'; pat2 <- 'chromosomalanomalies'
 pat3 <- '.any'; pat4 <- '.other'
