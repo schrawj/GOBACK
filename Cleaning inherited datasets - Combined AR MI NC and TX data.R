@@ -184,7 +184,9 @@ save(goback, file = './goback.v20171107.2.rdata')
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
-load('./goback.v20171107.2.rdata')
+require(dplyr)
+
+load('Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20171107.2.rdata')
 
 goback$birth.wt <- ifelse(goback$birth.wt == 9999, NA, goback$birth.wt)
 
@@ -974,11 +976,11 @@ save(goback.chrom, file='goback.chrom.v20180122.1.rdata')
 
 # Drop kids with unknown sex from combined dataset ------------------------
 
+require(dplyr)
+
 #' For consistency with the chromosomal and non-chromosomal sets,
 #' drop children with sex == 9 from the combined dataset.
-setwd('Z:/Jeremy/GOBACK/Datasets/')
-
-load("./Old Datasets/goback.v20171211.1.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20171211.1.rdata")
 
 goback <- filter(goback, sex != 9)
 
@@ -988,9 +990,7 @@ save(goback, file = 'goback.v20180125.1.rdata')
 
 # Merge updated chromosomal and non-chromosomal sets ----------------------
 
-setwd('Z:/Jeremy/GOBACK/Datasets/')
-
-load("goback.no.chrom.v20180122.1.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.no.chrom.v20180122.1.rdata")
 
 controls <- filter(goback.nochrom, any.birthdefect == 0)
 cases.nonchrom <- goback.nochrom[goback.nochrom$any.birthdefect == 1, ]
@@ -1039,7 +1039,7 @@ save(goback.chrom, file = './goback.chrom.v20180419.rdata')
 rm(goback.chrom); gc()
 
 #' Overall set.
-load('./goback.v20180216.1.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180216.1.rdata')
 
 table(goback$state, goback$defect.total, useNA = 'always')
 goback$defect.total <- ifelse(goback$state == 'TX' & is.na(goback$defect.total), 0, goback$defect.total)
@@ -1322,7 +1322,7 @@ save(syndrome.ids, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.s
 
 # Flag syndromic defects in the non-chromosomal set: count occurre --------
 
-load("Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180530.2.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.nochrom.v20180530.2.rdata")
 load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata')
 
 syndromic.birth.defects.cases <- as.data.frame(matrix(nrow = 1, ncol = 36))
@@ -1429,7 +1429,7 @@ write.csv(syndromic.birth.defects.cases, file = 'Z:/Jeremy/GOBACK/R outputs/Synd
 
 require(dplyr)
 
-load("Z:/Jeremy/GOBACK/Datasets/goback.v20180530.2.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180530.2.rdata")
 load("Z:/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata")
 load("Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata")
 
