@@ -15,6 +15,10 @@ load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/goback.cox.ph.results.v2018012
 
 # Generate heatmap --------------------------------------------------------
 
+require(dplyr)
+
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/goback.cox.ph.results.v20180124.1.rdata')
+
 #' Need an updated defects matrix.
 defects <- c("conganomalies.cns", "conganomalies.eye", "conganomalies.ear.face.neck", "conganomalies.heart.circsys",    
              "conganomalies.respsys", "oral.clefts", "conganomalies.digestivesystem", "conganomalies.genitalandurinary",
@@ -62,7 +66,6 @@ plot<-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
   theme(axis.text.x = element_text(angle = 45,hjust = 1))
 
 print(plot)
-
 
 
 
@@ -135,43 +138,6 @@ bd.cc.associations$defect <- factor(bd.cc.associations$defect,
                                     labels = c('Any CNS Anomaly', 'Any Eye Anomaly', 'Any Ear, Face or Neck Anomaly', 'Any Heart or Circulatory System Anomaly',
                                                'Any Respiratory System Anomaly', 'Oral Clefts', 'Any Digestive System Anomaly', 'Any Genitourinary Anomaly',
                                                'Any Musculoskeletal Anomaly', 'Any Integument Anomaly', 'Any Chromosomal Anomaly'))
-
-
-
-# Print deprecated plots --------------------------------------------------
-
-#' Coarse color gradient for significance.
-plot <-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
-  geom_tile(aes(fill = signif.cat), color = 'black') + 
-  scale_fill_manual(values = c('green','grey50','indianred1','firebrick1','darkred','white'), drop = FALSE) +
-  guides(fill = guide_legend(title='Hazard Ratio')) +
-  ggtitle('Figure 1. Associations Between Different Categories of Birth Defects and Childhood Cancers') +
-  labs(x = "Cancer", y = "Anomaly") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))
-print(plot)
-
-#' Fine color gradient for significance.
-plot2 <-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
-  geom_tile(aes(fill = signif.cat.fine), color = 'black') + 
-  scale_fill_manual(values = c('green','grey50','yellow','indianred1','tomato','firebrick1','red3','darkred','white'), drop = FALSE) +
-  guides(fill = guide_legend(title='Hazard Ratio')) +
-  ggtitle('Figure 1. Associations Between Different Categories of Birth Defects and Childhood Cancers') +
-  labs(x = "Cancer", y = "Anomaly") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))
-print(plot2)
-
-#' Intermediate number of gradations, all red.
-plot3 <-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
-  geom_tile(aes(fill = signif.cat.int), color = 'black') + 
-  scale_fill_manual(values = c('green','grey75','indianred1','firebrick3','red','darkred','white'), drop = FALSE) +
-  guides(fill = guide_legend(title='Hazard Ratio')) +
-  ggtitle('Figure 1. Associations Between Different Categories of Birth Defects and Childhood Cancers') +
-  labs(x = "Cancer", y = "Anomaly") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))
-print(plot3)
 
 
 
