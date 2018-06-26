@@ -93,6 +93,7 @@ for (i in 1:nrow(bd.codes.mi)){
   codes <- subset(codes, !duplicated(codes))
 }
 
+codes <- subset(codes, codes != 'NA')
 codes <- sort(codes)
 
 #' Initialize an empty data frame with the proper dimensions and names.
@@ -111,7 +112,7 @@ for (i in 1:nrow(bd.codes.mi)){
   
   tmp <- as.character(bd.codes.mi[i,2:25])
   tmp <- subset(tmp, !duplicated(tmp))
-  tmp <- subset(tmp, !is.na(tmp))
+  tmp <- subset(tmp, tmp != 'NA')
   
   for (j in 1:length(tmp)){
     tmp[j] <- which(codes == tmp[j])
@@ -124,6 +125,16 @@ for (i in 1:nrow(bd.codes.mi)){
 }
 toc()
 
+tic()
+for (i in 1:nrow(bd.codes.mi.transpose)){
+  
+  for (j in l[[i]]){
+    bd.codes.mi.transpose[i, j] <- 1
+  }
+}
+toc()
 
+save(bd.codes.mi.transpose, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.transpose.v20180614.rdata')
 
+rm(list = ls()); gc()
 
