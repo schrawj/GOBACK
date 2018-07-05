@@ -9,7 +9,10 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
-require(survival); require(survminer)
+
+# Generate Cox PH estimates -----------------------------------------------
+
+require(survival)
 
 setwd('Z:/Jeremy/GOBACK/')
 load('./Datasets/goback.nochrom.v20180611.rdata')
@@ -50,10 +53,29 @@ for (i in outcomes){
 
 }
 
-rm(cox.coef, estimates, goback.surv, cox, i); gc()
+rm(list = ls()); gc()
 
-#' Generate plots and store as elements of a list.
-the.plot.thickens <- list()
+
+
+# Generate K-M curves -----------------------------------------------------
+
+require(survival); require(survminer)
+
+setwd('Z:/Jeremy/GOBACK/')
+load('./Datasets/goback.nochrom.v20180611.rdata')
+
+goback.nochrom$majordefect.cat <- factor(ifelse(goback.nochrom$majordefect.total == 0, 0,
+                                                ifelse(goback.nochrom$majordefect.total == 1, 1,
+                                                       ifelse(goback.nochrom$majordefect.total == 2, 2, 
+                                                              ifelse(goback.nochrom$majordefect.total == 3, 3,
+                                                                     ifelse(goback.nochrom$majordefect.total >= 4, 4, NA))))),
+                                         levels = c(0:4),
+                                         labels = c('0', '1', '2', '3', '4 or more'))
+
+#' A vector of the cancer diagnoses we are interested in.
+outcomes <- c('cancer','astro','hepato','medullo','nephro','neuro')
+
+the.plots.thicken <- list()
 
 for (i in 1:length(outcomes)){
   
@@ -70,16 +92,17 @@ for (i in 1:length(outcomes)){
   fit <- survfit(Surv(time, cancer) ~ defect, data = goback.surv)
   
   #' The plot for any cancer needs different y-axis limits.
+  #' All plots have axis and legend labels silenced.
   if (i == 1){
   
-  new.plot <- ggsurvplot(fit, 
-                         conf.int = FALSE, 
-                         ylim = c(0.98, 1), 
-                         ylab = 'Survival Probability', 
-                         xlim = c(0,18), 
-                         xlab = 'Time in Years', 
-                         linetype = 'strata', 
-                         legend.labs = c('No birth defect', '1 defect', '2 defects', '3 defects', '4 or more defects'))
+    new.plot <- ggsurvplot(fit, 
+                           conf.int = FALSE, 
+                           ylab = NULL,
+                           ylim = c(0.98, 1), 
+                           xlab = NULL,
+                           xlim = c(0,18), 
+                           linetype = 'strata', 
+                           legend = "none")
   
   }
   
@@ -87,20 +110,16 @@ for (i in 1:length(outcomes)){
     
     new.plot <- ggsurvplot(fit, 
                            conf.int = FALSE, 
+                           ylab = NULL,
                            ylim = c(0.995, 1), 
-                           ylab = 'Survival Probability', 
+                           xlab = NULL,
                            xlim = c(0,18), 
-                           xlab = 'Time in Years', 
                            linetype = 'strata', 
-                           legend.labs = c('No birth defect', '1 defect', '2 defects', '3 defects', '4 or more defects'))
+                           legend = "none")
   }
   
-  the.plot.thickens[i] <- new.plot
+  the.plots.thicken[i] <- new.plot
 
 }
 
-names(the.plot.thickens) <- outcomes
-
-
-
-
+names(the.plots.thicken) <- outcomes
