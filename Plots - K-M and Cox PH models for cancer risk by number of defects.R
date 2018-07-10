@@ -9,7 +9,6 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
-
 # Generate Cox PH estimates -----------------------------------------------
 
 require(survival)
@@ -26,9 +25,9 @@ goback.nochrom$majordefect.cat <- factor(ifelse(goback.nochrom$majordefect.total
                                          labels = c('0', '1', '2', '3', '4 or more'))
 
 #' A vector of the cancer diagnoses we are interested in.
-outcomes <- c('cancer','astro','hepato','medullo','nephro','neuro')
+outcomes <- c('cancer','cns.any','neuro')
 
-#' Cox PH models for outcomes of interest by number of birth defects.
+#' Cox PH models for 3 cancers of interest by number of birth defects.
 for (i in outcomes){
   
   goback.surv <- data.frame(studyid = goback.nochrom$studyid,
@@ -53,6 +52,28 @@ for (i in outcomes){
 
 }
 
+#' BW-adjusted model for hepatoblastoma.
+goback.surv <- data.frame(studyid = goback.nochrom$studyid,
+                          time = goback.nochrom$person.yrs, 
+                          cancer = goback.nochrom$hepato, 
+                          defect = goback.nochrom$majordefect.cat,
+                          sex = factor(goback.nochrom$sex, 
+                                       levels = c(1,2),
+                                       labels = c('Male','Female')),
+                          m.age = goback.nochrom$m.age,
+                          state = goback.nochrom$state,
+                          birth.wt = goback.nochrom$birth.wt)
+
+cox <- cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex + state + birth.wt, data = goback.surv)
+cox.coef <- as.data.frame(summary(cox)$coefficients)
+
+estimates <- data.frame(var = rownames(cox.coef), 
+                        hr = cox.coef$`exp(coef)`, 
+                        ci.lower = exp(cox.coef$coef-(1.96*cox.coef$`se(coef)`)), 
+                        ci.upper = exp(cox.coef$coef+(1.96*cox.coef$`se(coef)`)))
+
+write.csv(estimates, file = paste0('Z:/Jeremy/GOBACK/R outputs/Cancer risk by number of birth defects/hepato.risk.by.num.defects.csv'), row.names = FALSE)
+
 rm(list = ls()); gc()
 
 
@@ -73,7 +94,7 @@ goback.nochrom$majordefect.cat <- factor(ifelse(goback.nochrom$majordefect.total
                                          labels = c('0', '1', '2', '3', '4 or more'))
 
 #' A vector of the cancer diagnoses we are interested in.
-outcomes <- c('cancer','astro','hepato','medullo','nephro','neuro')
+outcomes <- c('cancer','cns.any','hepato','neuro')
 
 the.plots.thicken <- list()
 
@@ -101,6 +122,7 @@ for (i in 1:length(outcomes)){
                            ylim = c(0.98, 1), 
                            xlab = NULL,
                            xlim = c(0,18), 
+                           font.tickslab = c(15, 'bold', 'black'),
                            linetype = 'strata', 
                            legend = "none")
   
@@ -114,6 +136,7 @@ for (i in 1:length(outcomes)){
                            ylim = c(0.995, 1), 
                            xlab = NULL,
                            xlim = c(0,18), 
+                           font.tickslab = c(15, 'bold', 'black'),
                            linetype = 'strata', 
                            legend = "none")
   }
@@ -123,3 +146,15 @@ for (i in 1:length(outcomes)){
 }
 
 names(the.plots.thicken) <- outcomes
+
+#' We need one plot with the strata in the legend so we can steal it for the figure.
+print(ggsurvplot(fit, 
+                       conf.int = FALSE, 
+                       ylab = NULL,
+                       ylim = c(0.995, 1), 
+                       font.tickslab = c(15, 'bold', 'black'),
+                       xlab = NULL,
+                       xlim = c(0,18), 
+                       linetype = 'strata', 
+                       legend.labs = c('No defect', '1 defect', '2 defects', '3 defects', '4 or more defects')))
+
