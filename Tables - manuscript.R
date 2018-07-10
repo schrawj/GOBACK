@@ -67,6 +67,32 @@ load('goback.chrom.v20180611.rdata')
 
 goback.chrom <- goback.chrom[, c(1:21,95:156)]
 
+#' Any anomaly, any cancer.
+goback.surv <- data.frame(time = goback.chrom$person.yrs,
+                          cancer = goback.chrom$cancer,
+                          defect = goback.chrom$any.chromosomal.anomaly,
+                          sex = factor(goback.chrom$sex,
+                                       levels = c(1,2),
+                                       labels = c('Male','Female')),
+                          m.age = goback.chrom$m.age,
+                          state = goback.chrom$state.num)      
+
+cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex + state, data = goback.surv)
+cox.coef <- summary(cox)$coefficients
+
+rm(cox, goback.surv); gc()
+
+estimates <- data.frame(defect = 'any.chromosomal.anomaly', 
+                        cancer = 'any.cancer', 
+                        HR = exp(cox.coef[1,1]), 
+                        ci.lower = exp(cox.coef[1,1]-(1.96*cox.coef[1,3])), 
+                        ci.upper = exp(cox.coef[1,1]+(1.96*cox.coef[1,3])),
+                        p.value.coef = cox.coef[1,5],
+                        num.comorbid = table(goback.chrom$any.chromosomal.anomaly, goback.chrom$cancer)[2,2])
+
+write.table(estimates, file = 'Z:/Jeremy/GOBACK/R Outputs/goback.specific.cancer.by.any.chromosomal.defect.v20180611.csv', sep=',', append = TRUE, 
+            row.names = FALSE, col.names = FALSE)
+
 #' Models for cancers except ALL, Wilms, hepatoblastoma in children with 
 #' chromosomal anomalies or single-gene syndromes.
 for (j in c(40:52,54:57,59:78)){
@@ -178,6 +204,36 @@ require(survival)
 
 setwd('Z:/Jeremy/GOBACK/Datasets/')
 load('goback.nochrom.v20180611.rdata')
+
+#' Any anomaly, any cancer.
+goback.surv <- data.frame(time = goback.nochrom$person.yrs,
+                          cancer = goback.nochrom$cancer,
+                          defect = goback.nochrom$any.birthdefect,
+                          sex = factor(goback.nochrom$sex,
+                                       levels = c(1,2),
+                                       labels = c('Male','Female')),
+                          m.age = goback.nochrom$m.age,
+                          state = goback.nochrom$state.num)      
+
+cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex + state, data = goback.surv)
+cox.coef <- summary(cox)$coefficients
+
+test.ph <- cox.zph(cox)
+test.ph <- test.ph$table['defect','p']
+
+rm(cox, goback.surv); gc()
+
+estimates <- data.frame(defect = 'any.nonchromosomal.anomaly', 
+                        cancer = 'any.cancer', 
+                        HR = exp(cox.coef[1,1]), 
+                        ci.lower = exp(cox.coef[1,1]-(1.96*cox.coef[1,3])), 
+                        ci.upper = exp(cox.coef[1,1]+(1.96*cox.coef[1,3])),
+                        p.value.coef = cox.coef[1,5],
+                        p.value.zph = test.ph,
+                        num.comorbid = table(goback.nochrom$any.birthdefect, goback.nochrom$cancer)[2,2])
+
+write.table(estimates, file = 'Z:/Jeremy/GOBACK/R Outputs/goback.specific.cancer.by.any.nonchromosomal.defect.v20180611.csv', sep=',', append = TRUE, 
+            row.names = FALSE, col.names = FALSE)
 
 goback.nochrom <- goback.nochrom[,c(1,156,3,6,7,9,15,16,112:151)]; gc()
 
