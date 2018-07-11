@@ -1517,18 +1517,50 @@ rm(list = ls()); gc()
 
 
 
-# Write final datasets to csv ---------------------------------------------
 
-#' God willing, those are the last edits I make to these datasets.
-#' Write them to csv so Philip and Tiffany can have copies.
-load("Z:/Jeremy/GOBACK/Datasets/goback.chrom.v20180117.1.rdata")
+# Replace 99 with NA for missing paternal age in TX -----------------------
 
-write.csv(goback.chrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.chrom.v20180117.csv', row.names = FALSE)
+#' During the initial phase of the DS-ALL BD project, I noticed that 
+#' missing paternal ages in TX are (at least sometimes) coded 99.
+#' Replace these with NA where appropriate.
 
-rm(goback.chrom); gc()
+setwd('Z:/Jeremy/GOBACK/Datasets/')
 
-load("Z:/Jeremy/GOBACK/Datasets/goback.no.chrom.v20180117.1.rdata")
+#' Overall.
+load('./goback.v20180611.rdata')
 
-write.csv(goback.nochrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.no.chrom.v20180117.csv', row.names = FALSE)
+table(goback$f.age, goback$state, useNA = 'ifany')
 
-rm(goback.nochrom); gc()
+goback$f.age <- ifelse(goback$f.age == 99, NA, goback$f.age)
+
+table(goback$f.age, goback$state, useNA = 'ifany')
+
+save(goback, file = 'Z:/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
+
+rm(list = ls()); gc()
+
+#' Chromosomal.
+load('./goback.chrom.v20180611.rdata')
+
+table(goback.chrom$f.age, goback.chrom$state, useNA = 'ifany')
+
+goback.chrom$f.age <- ifelse(goback.chrom$f.age == 99, NA, goback.chrom$f.age)
+
+table(goback.chrom$f.age, goback.chrom$state, useNA = 'ifany')
+
+save(goback.chrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.chrom.v20180711.rdata')
+
+rm(list = ls()); gc()
+
+#' Non-chromosomal.
+load('./goback.nochrom.v20180611.rdata')
+
+table(goback.nochrom$f.age, goback.nochrom$state, useNA = 'ifany')
+
+goback.nochrom$f.age <- ifelse(goback.nochrom$f.age == 99, NA, goback.nochrom$f.age)
+
+table(goback.nochrom$f.age, goback.nochrom$state, useNA = 'ifany')
+
+save(goback.nochrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
+
+rm(list = ls()); gc()
