@@ -25,7 +25,7 @@ for (i in 2:67){
 
 rm(tx.raw, tx.bd)
 
-load("Z:/Jeremy/GOBACK/Datasets/North Carolina/nc.birth.defect.data.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/North Carolina/nc.birth.defect.data.rdata")
 
 #' Select only populated defects columns.
 nc.sel <- select(nc.bd, NCID, DX1:DX47)
@@ -64,6 +64,30 @@ save(bd.codes.txnc, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes
 save(bd.codes.mi, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180606.rdata')
 
 rm(list = ls());gc()
+
+#' Addendum: this is code taken from the data cleaning script in the DS-ALL BD project that adds back in
+#' MI kids with cancer, who were not previously included in this data frame.
+require(readstata13); require(dplyr)
+
+load("Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.transpose.v20180614.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180606.rdata")
+
+#' A file from Tiffany that has the BD codes for kids with cancer.
+mi.bd.cancercases <- read.dta13('Z:/Jeremy/DS-ALL BD project/Datasets/Raw datasets/mi_cancer_long_jeremy_071118.dta', convert.underscore = TRUE)
+mi.bd.cancercases <- subset(mi.bd.cancercases, !duplicated(mi.bd.cancercases$studyid))
+mi.bd.cancercases$studyid <- paste0('mi',mi.bd.cancercases$studyid)
+mi.bd.cancercases <- mi.bd.cancercases[ , c(2,109:132)]
+names(mi.bd.cancercases) <- tolower(names(mi.bd.cancercases))
+
+bd.codes.mi <- rbind(bd.codes.mi, mi.bd.cancercases)
+bd.codes.mi <- subset(bd.codes.mi, !duplicated(bd.codes.mi$studyid))
+
+#' Remove new rows for cancer cases with no birth defects.
+bd.codes.mi$rowsum <- rowSums(bd.codes.mi[2:25], na.rm = TRUE)
+bd.codes.mi <- subset(bd.codes.mi, bd.codes.mi$rowsum > 0)
+bd.codes.mi <- bd.codes.mi[, 1:25]
+
+save(bd.codes.mi, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180712.rdata')
 
 
 
