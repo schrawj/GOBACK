@@ -82,7 +82,7 @@ rm(list = ls); gc()
 
 require(stringr); require(dplyr); require(tictoc)
 
-load("//discovery2/bcm-pedi-genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180606.rdata")
+load("//discovery2/bcm-pedi-genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180712.rdata")
 
 #' Generate a list of all the unique codes.
 codes <- as.character()
@@ -134,7 +134,7 @@ for (i in 1:nrow(bd.codes.mi.transpose)){
 }
 toc()
 
-save(bd.codes.mi.transpose, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.transpose.v20180614.rdata')
+save(bd.codes.mi.transpose, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.transpose.v20180712.rdata')
 
 rm(list = ls()); gc()
 
