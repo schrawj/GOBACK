@@ -1,0 +1,190 @@
+---
+title: "Response to Sonja's Comments"
+author: "Jeremy Schraw"
+date: "August 22, 2018"
+output: html_document
+---
+
+```{r, include = FALSE}
+require(dplyr); require(kableExtra)
+```
+
+
+## Birth Defects Codes in Children Identified as Having Cancer and Either 22q11.2 Deletion Syndrome or Trisomy 13
+
+Sonja expressed concern over the 22q11.2 deletion syndrome-retinoblastoma association, asking if these were all from a single state
+or if they might actually be children with misclassified chromosome 13 deletions.
+
+First, subset co-occurring 22q/trisomy 13-cancer cases and fetch their birth defects codes.
+
+
+```{r}
+
+load('Z:/Jeremy/GOBACK/Datasets/goback.chrom.v20180711.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180712.rdata')
+
+check <- select(rbind(filter(goback.chrom, di.george.syndrome == 1 & cancer == 1 & state != 'AR'),
+                      filter(goback.chrom, trisomy13 == 1 & cancer == 1 & state != 'AR')),
+                studyid, cancer1, di.george.syndrome, trisomy13)
+
+check.bpa <- select(filter(bd.codes.txnc, studyid %in% check$studyid), 1:32)
+check.icd <- filter(bd.codes.mi, studyid %in% check$studyid)
+
+check.icd[26:32] <- as.character(NA)
+
+names <- c('studyid',rep(paste0('code',1:31)))
+names(check.bpa) <- names 
+names(check.icd) <- names
+
+check <- arrange(left_join(check, rbind(check.bpa, check.icd), by = 'studyid'), studyid)
+```
+
+
+Then, print birth defects codes for comorbid cases.
+
+Of note, MI uses ICD-9-CM codes to record birth defects, whereas TX and NC use CDC/BPA codes.
+Dummy variables for birth defects were computed from ICD9 codes, after mapping CDC/BPA codes
+to their respective ICD9 counterparts. 
+
+In the ICD9 system, the code **758.1** denotes **trisomy 13** and the code **758.39** denotes **22q11.2 deletion**.
+In the CDC/BPA system, the codes **758.100-758.190** denote **trisomy 13**, the code **758.370** denotes **22q11.2 deletion** and
+the code **758.330** denotes **13q deletion**.
+
+
+```{r, echo = FALSE}
+kable(check) %>% kable_styling() %>% scroll_box(width = '100%', height = '400px')
+```
+
+
+Review of the TX and NC data and the dx_map_current_dofile_final document used to create them suggest there are issues with
+the 22q11.2 deletion syndrome variable. Specifically, rows 900-907 of that document indicate that kids with CDC/BPA codes 
+758.320-758.390 were assigned the ICD9 code 758.39, and hence were recorded as having 22q11.2 deletion syndrome. This is likely incorrect
+and should be verified.
+
+The existing variable for trisomy 13 appears valid in these individuals.
+
+## What Else Can We Say About "Obstructive Genitourinary Defects"?
+
+
+```{r include = FALSE}
+rm(list = ls()); gc()
+```
+
+```{r, results = FALSE}
+require(dplyr); require(xlsx)
+
+load('Z:/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.transpose.v20180614.rdata')
+
+ob <- filter(goback, obstructive.genitourinary.defects == 1 & state != 'AR')
+ob.bpa <- filter(bd.codes.txnc.transpose, studyid %in% ob$studyid)
+
+cols <- c(1, which(grepl('753.2', names(ob.bpa))))
+
+ob.bpa <- select(ob.bpa, cols)
+ob.bpa$`753.200` <- ifelse(rowSums(ob.bpa[2:7], na.rm = TRUE) >= 1, 1, 0)
+ob.bpa$`753.210` <- ifelse(rowSums(ob.bpa[8:12], na.rm = TRUE) >= 1, 1, 0)
+ob.bpa$`753.220` <- ifelse(rowSums(ob.bpa[13:18], na.rm = TRUE) >= 1, 1, 0)
+ob.bpa$`753.290` <- ifelse(rowSums(ob.bpa[19:24], na.rm = TRUE) >= 1, 1, 0)
+ob.bpa <- ob.bpa[, c(1,2,8,13,20)]
+
+gu.defect.counts <- data.frame(code = names(ob.bpa[2:5]),
+                               count = colSums(ob.bpa[2:5]))
+
+gu.names <- read.xlsx('Z:/Jeremy/GOBACK/Data dictionaries and data definitions/dxmap_current.xlsx', sheetName = 'Current')
+
+gu.defect.counts <- left_join(gu.defect.counts, 
+                              select(gu.names, BPA_number, BPANAME), 
+                              by = c('code' = 'BPA_number'))
+
+```
+
+
+The following 4 CDC/BPA codes were considered obstructive genitourinary defects.
+All 4 codes correspond to the the ICD9 code 753.29 - 'other obstructive defect of renal pelvis and ureter.'
+Thus we can't be any more specific than this for kids in MI.
+
+**Code** gives the BPA code. 
+**Count** gives the number of instances of a child with obstructive genitourinary defects having that code. 
+**BPANAME** gives us the name of the defect in the CDC/BPA system.
+
+
+```{r}
+kable(gu.defect.counts) %>% kable_styling() %>% scroll_box(width = '100%')
+```
+
+
+There are 108 children born in TX and diagnosed with both obstructive genitourinary defects and cancer.
+The table below gives the frequency of each diagnosis.
+
+
+```{r}
+
+ob <- filter(goback, obstructive.genitourinary.defects == 1 & cancer == 1 & state == 'TX')
+
+tab <- table(ob$cancer1)
+
+gu.cancers <- data.frame(cancer = names(tab), count = tab)
+gu.cancers <- rename(select(gu.cancers, -count.Var1), cases = count.Freq)
+
+print(gu.cancers)
+```
+
+
+A complete list of their birth defects codes can be seen below.
+
+
+```{r}
+
+ob <- left_join(select(ob, studyid, cancer1), bd.codes.txnc, by = 'studyid')
+
+kable(ob) %>% kable_styling() %>% scroll_box(width = '100%', height = '400px')
+
+```
+
+
+## Reviewing Codes in Children With Multiple Birth Defects
+
+Regarding her 8th comment, that she'd like to review the codes in children with multiple birth defects, 
+it's certainly possible to pick some of these kids at random and paste them into a couple scrollable tables.
+
+
+```{r include = FALSE}
+rm(list = ls()); gc()
+```
+
+```{r include = FALSE}
+require(dplyr); require(kableExtra)
+```
+
+```{r}
+load('Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180712.rdata')
+```
+
+
+Because of the diferent structures of the birth defects data frames for TX/NC vs MI, it is easier to present two separate tables.
+
+All birth defects codes for 100 random children with >= 4 defects from TX and NC.
+
+
+```{r}
+tmp <- arrange(filter(goback.nochrom, defect.total >= 4 & state %in% c('TX','NC')), runif)
+tmp <- tmp[30000:30099,]
+mbd.codes <- filter(bd.codes.txnc, studyid %in% tmp$studyid)
+kable(mbd.codes) %>% kable_styling() %>% scroll_box(width = '100%', height = '400px')
+```
+
+
+Same, for MI.
+
+
+```{r}
+tmp <- arrange(filter(goback.nochrom, defect.total >= 4 & state == 'MI', runif))
+tmp <- tmp[10900:10999,]
+mbd.codes <- filter(bd.codes.mi, studyid %in% tmp$studyid)
+kable(mbd.codes) %>% kable_styling() %>% scroll_box(width = '100%', height = '400px')
+```

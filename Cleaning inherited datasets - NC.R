@@ -227,6 +227,10 @@ get.standard.cancer.vars <- function(x){
 
 
 # Load and save raw data --------------------------------------------------
+
+require(dplyr); require(stringr)
+
+setwd('Z:/Jeremy/GOBACK/Datasets/Old Datasets/North Carolina/')
 nc.raw <- read.csv(file = './nc.raw.data.csv', header = TRUE, stringsAsFactors = FALSE)
 
 colnames(nc.raw) <- restring.columns(nc.raw)
