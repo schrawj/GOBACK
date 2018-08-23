@@ -1,3 +1,12 @@
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+#' 2018.08.23.
+#' 
+#' Contains the code used to generate the R Markdown documents describing 
+#' QC measures in response to co-author comments, plus some additional 
+#' code to output data in other formats.
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
 
 # Review BD codes for cancer cases w/22q or trisomy 13 --------------------
 
