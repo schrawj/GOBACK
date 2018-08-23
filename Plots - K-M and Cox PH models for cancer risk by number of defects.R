@@ -13,8 +13,7 @@
 
 require(survival)
 
-setwd('Z:/Jeremy/GOBACK/')
-load('./Datasets/goback.nochrom.v20180611.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
 
 goback.nochrom$majordefect.cat <- factor(ifelse(goback.nochrom$majordefect.total == 0, 0,
                                                 ifelse(goback.nochrom$majordefect.total == 1, 1,
@@ -82,8 +81,7 @@ rm(list = ls()); gc()
 
 require(survival); require(survminer)
 
-setwd('Z:/Jeremy/GOBACK/')
-load('./Datasets/goback.nochrom.v20180611.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
 
 goback.nochrom$majordefect.cat <- factor(ifelse(goback.nochrom$majordefect.total == 0, 0,
                                                 ifelse(goback.nochrom$majordefect.total == 1, 1,
@@ -239,9 +237,7 @@ goback.nochrom$majordefect.cat <- factor(ifelse(goback.nochrom$majordefect.total
                                          levels = c(0:4),
                                          labels = c('0', '1', '2', '3', '4 or more'))
 
-
-#' Need new variables for any heme cancer (any leukemia or any lymphoma) + 
-#' any non-CNS solid tumor.
+#' Need new variables for any heme cancer (any leukemia or any lymphoma) and forany non-CNS solid tumor.
 goback.nochrom$any.heme.cancer <- ifelse(goback.nochrom$leu.any == 1 | goback.nochrom$lym.any == 1, 1, 0)
 
 solid.tumors <- unique(goback.nochrom$cancer1)
