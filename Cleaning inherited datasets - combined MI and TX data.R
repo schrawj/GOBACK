@@ -34,7 +34,7 @@ populate.cancer.var <- function(x,y,z){
 
 
 # Load in and merge data --------------------------------------------------
-load("Z:/Jeremy/GOBACK/Datasets/Michigan/mi.v20171006.4.rdata")
+load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/Michigan/mi.v20171006.4.rdata")
 load('Z:/Jeremy/GOBACK/Datasets/Texas/tx.v20171019.3.rdata')
 
 mitx <- rbind(tx, mi)
@@ -132,7 +132,7 @@ save(mitx, file = './mi.tx.v20171023.3.rdata')
 
 
 # Set birth defects variables to zero for children w/o defects ------------
-load('./mi.tx.v20171023.3.rdata')
+load('Z:/Jeremy/GOBACK/Datasets/Old Datasets/Combined Michigan and Texas/mi.tx.v20171023.3.rdata')
 
 #' Fix an issue where non-BD children in TX have any.birthdefect set to NA.
 mitx$any.birthdefect <- ifelse(mitx$state == 'TX' & is.na(mitx$any.birthdefect), 0, mitx$any.birthdefect)

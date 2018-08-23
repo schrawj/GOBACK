@@ -14,7 +14,7 @@ require(stringr)
 require(ggplot2)
 require(readstata13)
 
-setwd('Z:/Jeremy/GOBACK/Datasets/Michigan/')
+setwd('Z:/Jeremy/GOBACK/Datasets/Old Datasets/Michigan/')
 
 # User-defined functions --------------------------------------------------
 restring.columns <- function(x){
@@ -262,7 +262,7 @@ mi$m.edu2 <- with(mi,
                                 ifelse(m.edu.yrs > 12, '> HS','This is not a valid category'))))
 
 #' NOTE: birth weight and gestational age are missing for non-cancer children.
-#' This is addressed by code near the end of the script.
+#' This is addressed by code near the end of this script.
 mi$birth.wt.cat <- compute.birth.wt.cat(mi$birth.wt)
 
 save(mi, file = './mi.v20171005.2.rdata')
@@ -307,13 +307,10 @@ save(mi, file = './mi.v20171005.4.rdata')
 
 
 
-# Inspect birth defects variables -----------------------------------------
-tmp <- filter(mi, cleft.lip.w.and.wo.cleft.palate == 1 | cleft.palate.wo.cleft.lip == 1)
-table(tmp$oral.clefts)
-
-
-
 # Load in MI cancer codes -------------------------------------------------
+
+require(readstata13); require(dplyr)
+
 mi.can <- read.dta13('Z:/Birth Defects-Childhood Cancer Projects/GOBACK Project (Tiffany)/Michigan/MI_cancer_062017_rg.dta', 
                      convert.factors = TRUE, convert.underscore = TRUE) 
 mi.can <- mi.can[,c(1,52,68)]
