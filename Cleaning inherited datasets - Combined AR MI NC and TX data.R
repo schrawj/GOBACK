@@ -10,15 +10,6 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
-
-
-# Prep environment --------------------------------------------------------
-setwd('Z:/Jeremy/GOBACK/Datasets/')
-
-require(dplyr); require(ggplot2); require(gmodels); require(xlsx)
-
-
-
 # User-defined functions --------------------------------------------------
 get.standard.dem.vars <- function(x){
   require(dplyr)
@@ -109,15 +100,15 @@ compute.other.var <- function(var1, var2){
 
 
 # Load in and merge data --------------------------------------------------
-load("Z:/Jeremy/GOBACK/Datasets/North Carolina/nc.v20171107.3.rdata")
-load("Z:/Jeremy/GOBACK/Datasets/Combined Arkansas Michigan and Texas/ar.mi.tx.v20171106.1.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/North Carolina/nc.v20171107.3.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Combined Arkansas Michigan and Texas/ar.mi.tx.v20171106.1.rdata")
 
 goback <- rbind(armitx, nc)
 
 rm(armitx, nc)
 gc()
 
-save(goback, file = 'Z:/Jeremy/GOBACK/Datasets/GOBACK.v20171107.1.rdata')
+save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/GOBACK.v20171107.1.rdata')
 
 
 
@@ -186,7 +177,7 @@ save(goback, file = './goback.v20171107.2.rdata')
 
 require(dplyr)
 
-load('Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20171107.2.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20171107.2.rdata')
 
 goback$birth.wt <- ifelse(goback$birth.wt == 9999, NA, goback$birth.wt)
 
@@ -419,7 +410,7 @@ sink()
 # Review MI any.birthdefect variable --------------------------------------
 
 load('goback.v20171201.2.rdata')
-load("Z:/Jeremy/GOBACK/Datasets/birth.defects.codes.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/birth.defects.codes.rdata")
 
 #' There are too many children in MI who are tagged as having any birth defect.
 #' More specifically, 8.7%.  This drops to 6.2% if you only count kids who have one or
@@ -494,7 +485,7 @@ save(goback, file = 'goback.v20171201.3.rdata')
 
 load('goback.v20171201.3.rdata')
 load("birth.defects.codes.rdata")
-load("Z:/Jeremy/GOBACK/Datasets/Arkansas/arkansas.v20170828.2.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Arkansas/arkansas.v20170828.2.rdata")
 
 #' North Carolina.
 tmp <- defect.codes[grepl('^nc', defect.codes$studyid), ]
@@ -757,7 +748,7 @@ tmp <- c(tmp$studyid)
 goback$down.syndrome <- ifelse(goback$studyid %in% tmp, 1, goback$down.syndrome)
 
 #' There are no extra codes I'm missing.
-load("Z:/Jeremy/GOBACK/Datasets/list.of.unique.mi.bd.codes.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/list.of.unique.mi.bd.codes.rdata")
 tmp <- filter(codes, codes >= 758 & codes < 759)
 print(tmp)
 
@@ -768,7 +759,7 @@ tmp <- defect.codes[defect.codes$studyid %in% tmp, ]
 #' This file has a record for EVERY child in Michigan.
 #' Q: Do these mismatched kids even have a defect code?
 #' A: Hard to tell, still can't reconcile the IDs.
-load("Z:/Jeremy/GOBACK/Datasets/Michigan/mi.birthdefects.codes.all.children.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Michigan/mi.birthdefects.codes.all.children.rdata")
 mi.filt <- arrange(mi.filt, studyid)
 
 tmp <- mi.filt[grepl('^mi', mi.filt$studyid), ]
@@ -980,7 +971,7 @@ require(dplyr)
 
 #' For consistency with the chromosomal and non-chromosomal sets,
 #' drop children with sex == 9 from the combined dataset.
-load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20171211.1.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20171211.1.rdata")
 
 goback <- filter(goback, sex != 9)
 
@@ -990,7 +981,7 @@ save(goback, file = 'goback.v20180125.1.rdata')
 
 # Merge updated chromosomal and non-chromosomal sets ----------------------
 
-load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.no.chrom.v20180122.1.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.no.chrom.v20180122.1.rdata")
 
 controls <- filter(goback.nochrom, any.birthdefect == 0)
 cases.nonchrom <- goback.nochrom[goback.nochrom$any.birthdefect == 1, ]
@@ -1016,7 +1007,7 @@ save(goback, file = 'goback.v20180216.1.rdata')
 #' Convert to zero.
 
 #' Non-chromosomal set.
-setwd('Z:/Jeremy/GOBACK/Datasets/')
+setwd('W:/Old_genepi2/Jeremy/GOBACK/Datasets/')
 load('./goback.no.chrom.v20180122.1.rdata') 
 
 table(goback.nochrom$state, goback.nochrom$defect.total, useNA = 'always')
@@ -1039,7 +1030,7 @@ save(goback.chrom, file = './goback.chrom.v20180419.rdata')
 rm(goback.chrom); gc()
 
 #' Overall set.
-load('Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180216.1.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180216.1.rdata')
 
 table(goback$state, goback$defect.total, useNA = 'always')
 goback$defect.total <- ifelse(goback$state == 'TX' & is.na(goback$defect.total), 0, goback$defect.total)
@@ -1215,10 +1206,8 @@ rm(list = ls()); gc()
 
 require(dplyr)
 
-load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
-load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180606.rdata')
-
-
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180606.rdata')
 
 tsc.txnc <- filter(bd.codes.txnc, bpa1 == '759.500')
 for (i in 3:67){
@@ -1316,14 +1305,14 @@ syndrome.ids <- list(tuberous.sclerosis = tsc.ids,
                      beckwith.wiedemann.tx.nc = bws.ids.txnc, 
                      cot.noon.rub.tay.bws.mi = syndrome.ids.mi)
 
-save(syndrome.ids, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata')
+save(syndrome.ids, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata')
 
 
 
 # Flag syndromic defects in the non-chromosomal set: count occurre --------
 
-load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.nochrom.v20180530.2.rdata")
-load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata')
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.nochrom.v20180530.2.rdata")
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata')
 
 syndromic.birth.defects.cases <- as.data.frame(matrix(nrow = 1, ncol = 36))
 df.names <- c('syndrome', 'num.cases', 'mi.cases', 'nc.cases', 'tx.cases', 'num.comorbid.cases', names(goback.nochrom[108:137]))
@@ -1388,7 +1377,7 @@ syndromic.birth.defects.cases <- rbind(syndromic.birth.defects.cases, new.syndro
 
 syndromic.birth.defects.cases <- syndromic.birth.defects.cases[2:8, ]
 
-write.csv(syndromic.birth.defects.cases, file = 'Z:/Jeremy/GOBACK/R outputs/Syndromic cases/syndromic.case.counts.csv', row.names = FALSE)
+write.csv(syndromic.birth.defects.cases, file = 'W:/Old_genepi2/Jeremy/GOBACK/R outputs/Syndromic cases/syndromic.case.counts.csv', row.names = FALSE)
 
 
 
@@ -1429,9 +1418,10 @@ write.csv(syndromic.birth.defects.cases, file = 'Z:/Jeremy/GOBACK/R outputs/Synd
 
 require(dplyr)
 
-load("Z:/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180530.2.rdata")
-load("Z:/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata")
-load("Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180530.2.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/list.of.syndromic.kids.in.tx.mi.nc.rdata")
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata")
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.transpose.v20180614.rdata')
 
 #' Initialize and compute new BD variables.
 goback[ ,153:156] <- 0
@@ -1452,44 +1442,27 @@ goback$nf <- ifelse(goback$nf == 0 & goback$any.birthdefect == 1, NA, goback$nf)
 #' Definitively identify DiGeorge syndrome cases without genetic DX.
 #' This distinction can only be established in the TX and NC data.
 #' Exclude TX and NC children who have only a clinical diagnosis of DiGeorge.
-tmp <- filter(bd.codes.txnc, studyid %in% syndrome.ids[[3]])
+tmp <- filter(bd.codes.txnc.transpose, (`279.110` == 1 | `279.118` == 1) & is.na(`758.370`))
 
-ids.with.karyotype <- as.character()
+goback <- filter(goback, !(studyid %in% tmp$studyid))
 
-for (i in 1:507){
-  
-  new.id <- as.character(tmp[i, ])
-  
-  if('758.380' %in% new.id){
-    
-    new.id <- new.id[[1]]
-    ids.with.karyotype <- c(ids.with.karyotype, new.id)
-    
-  }
-  
-  else {
-    
-    next
-    
-  }
-  
-}
-
-#' Remove children with only clinical DX.
-#' Have verified that all children with both clinical DX and genetic DX 
-#' are currently counted as having the synrdome.
-ids.to.drop <- setdiff(as.character(tmp$studyid), ids.with.karyotype)
-goback <- filter(goback, !(studyid %in% ids.to.drop))
-
-rm(bd.codes.mi, bd.codes.txnc, i, ids, ids.to.drop, ids.with.karyotype, new.id); gc()
-
-#' Have verified that existing BD variables to not need to be updated based
-#' on new TSC and NF variables.  
-#' Rearrange and rename columns in a more logical order.
 goback <- goback[, c(1:94,153:156,95:152)]
 names(goback)[99] <- 'any.chromosomal.anomaly'
 
-save(goback, file = 'Z:/Jeremy/GOBACK/Datasets/goback.v20180611.rdata')
+save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180611.rdata')
+
+rm(list = ls()); gc()
+
+
+
+# Replace 99 with NA for missing paternal age in TX -----------------------
+
+#' During the initial phase of the DS-ALL BD project, I noticed that missing paternal ages in TX may be coded 99.
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180611.rdata')
+
+goback$f.age <- ifelse(goback$f.age == 99, NA, goback$f.age)
+
+save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
 
 rm(list = ls()); gc()
 
@@ -1499,7 +1472,7 @@ rm(list = ls()); gc()
 
 require(dplyr)
 
-load('Z:/Jeremy/GOBACK/Datasets/goback.v20180611.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
 
 chrom <- filter(goback, any.birthdefect == 1 & any.genetic.anomaly == 1)
 no.chrom <- filter(goback, any.birthdefect == 1 & is.na(any.genetic.anomaly))
@@ -1508,59 +1481,141 @@ control <- filter(goback, any.birthdefect == 0)
 rm(goback); gc()
 
 goback.nochrom <- rbind(no.chrom, control)
-save(goback.nochrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180611.rdata')
+save(goback.nochrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
 rm(goback.nochrom, no.chrom); gc()
 
 goback.chrom <- rbind(chrom, control)
-save(goback.chrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.chrom.v20180611.rdata')
-rm(list = ls()); gc()
-
-
-
-
-# Replace 99 with NA for missing paternal age in TX -----------------------
-
-#' During the initial phase of the DS-ALL BD project, I noticed that 
-#' missing paternal ages in TX are (at least sometimes) coded 99.
-#' Replace these with NA where appropriate.
-
-setwd('Z:/Jeremy/GOBACK/Datasets/')
-
-#' Overall.
-load('./goback.v20180611.rdata')
-
-table(goback$f.age, goback$state, useNA = 'ifany')
-
-goback$f.age <- ifelse(goback$f.age == 99, NA, goback$f.age)
-
-table(goback$f.age, goback$state, useNA = 'ifany')
-
-save(goback, file = 'Z:/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
+save(goback.chrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.chrom.v20180711.rdata')
 
 rm(list = ls()); gc()
 
-#' Chromosomal.
-load('./goback.chrom.v20180611.rdata')
 
-table(goback.chrom$f.age, goback.chrom$state, useNA = 'ifany')
 
-goback.chrom$f.age <- ifelse(goback.chrom$f.age == 99, NA, goback.chrom$f.age)
+# Repair DiGeorge and compute 13q deletion variables ----------------------
 
-table(goback.chrom$f.age, goback.chrom$state, useNA = 'ifany')
+#' GitHub test.  This line of text doesn't exist in the version old genepi2.
 
-save(goback.chrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.chrom.v20180711.rdata')
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+#' 2018.08.24.
+#' 
+#' We have shared a draft of the manuscript with external co-authors and 
+#' Sonja Rasmussen questioned the DiGeorge-retinoblastoma association,
+#' raising the possibility that these were misclassified cases of 13q 
+#' deletion.
+#' 
+#' In fact, review of the birth defects codes for comorbid DiGeorge-cancer
+#' cases revealed significant problems with the coding for this variable,
+#' which likely stem from 1) too many BPA codes being called DiGeorge in the
+#' .do file that someone originally wrote to compute the dummy variables, and 
+#' 2) these BPA codes all being mapped to the uninformative ICD9 code for
+#' other autosomal deletions, 758.39.
+#' 
+#' Shared findings with Philip. We will repair the DiGeorge variable as 
+#' follows:
+#' 1) compute a variable for 22q11 deletion in TX and NC kids.  Only 
+#' children with the code 758.370 should be considered affected. We will
+#' call this del.22q.
+#' 2) Compute a variable for DiGeorge syndrome in all states. Any TX and 
+#' NC kids with either or both of the codes 758.370/279.110 are considered
+#' affected, as are any MI kids with the ICD9 code 279.11. We will just 
+#' have to take AR at their word that any kid they said has DiGeorge does.
+#' we will call this variable digeorge.syndrome.
+#' 
+#' We will also compute a variable for 13q deletion in TX and NC.
+#' The code for this is 758.330.  We will call the variable del.13q.
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
 
-rm(list = ls()); gc()
+require(dplyr)
 
-#' Non-chromosomal.
-load('./goback.nochrom.v20180611.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.transpose.v20180614.rdata')
 
-table(goback.nochrom$f.age, goback.nochrom$state, useNA = 'ifany')
+#' Compute del.22q variable in TX and NC kids.
+#' In this case I'm lucky that there are no synonymous NC codes to contend with.
+del.22q.ids <- select(filter(bd.codes.txnc.transpose, `758.370` == 1), studyid)
 
-goback.nochrom$f.age <- ifelse(goback.nochrom$f.age == 99, NA, goback.nochrom$f.age)
+#' A problem.  Only 143 of the 342 22q IDs appear in the current GOBACK dataset.
+#' They were dropped in the transition from the 20180530.2 to 20180611.1 versions.
+#' This happened because they also had the code for the clinical diagnosis.  We'll want
+#' to exclude children who only have the clinical DX, but include children with both.
+del.22q.in.goback <- filter(goback, studyid %in% del.22q.ids$studyid)
+del.22q.not.in.goback <- anti_join(del.22q.ids, goback, 'studyid')
 
-table(goback.nochrom$f.age, goback.nochrom$state, useNA = 'ifany')
+rm(goback); load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180530.2.rdata')
 
-save(goback.nochrom, file = 'Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
+del.22q.to.add <- filter(filter(goback, studyid %in% del.22q.ids$studyid),
+                                studyid %in% del.22q.not.in.goback$studyid)
 
-rm(list = ls()); gc()
+rm(goback);load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
+
+#' The number of columns is mismatched and the new ones will have to be computed in these kids.
+current.names <- names(goback)
+old.names <- names(del.22q.to.add)
+setdiff(current.names, old.names)
+
+
+
+
+
+#' If I extract rows for the 181 kids I need to add back in, I expect that they should all have the 279.110 code or NC synonyms.
+#' That's exactly what I get.
+which(grepl('279.11', names(bd.codes.txnc.transpose)))
+tmp <- bd.codes.txnc.transpose[,c(1,97,98)]
+tmp <- filter(tmp, studyid %in% del.22q.to.add$studyid)
+
+
+
+
+
+
+
+
+
+
+# Scratch paper -----------------------------------------------------------
+
+goback$del.22q <- ifelse(goback$studyid %in% del.22q.ids$studyid, 1,
+                         ifelse(goback$any.birthdefect == 0 & !(goback$studyid %in% del.22q.ids$studyid),0,
+                                ifelse(goback$any.birthdefect == 0 & goback$studyid %in% del.22q.ids$studyid, 2, # Checking for errors.  Should be empty.
+                                       NA)))
+table(goback$del.22q, useNA = 'ifany')
+
+
+goback <- filter(goback, state %in% c('TX','NC'))
+
+#' It turns out that all these unmatched TX IDs are in the raw TX data.  They must have been dropped at some point.
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/Texas/tx.raw.data.rdata")
+
+tmp2 <- filter(tx.raw, birthID %in% del.22q.ids$studyid)
+tmp3 <- anti_join(del.22q.ids, tx.raw, c('studyid' = 'birthID'))
+print(tmp3$studyid)
+
+#' When and why were they dropped?
+#' They are all in the first version of goback.
+load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/GOBACK.v20171107.1.rdata")
+tmp <- filter(goback, studyid %in% del.22q.ids$studyid)
+
+rm(goback, tmp)
+
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20171206.1.rdata')
+tmp <- filter(goback, studyid %in% del.22q.ids$studyid)
+
+rm(goback, tmp)
+
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180530.1.rdata')
+tmp <- filter(goback, studyid %in% del.22q.ids$studyid)
+
+rm(goback, tmp)
+
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180530.2.rdata')
+del.22q.not.in.goback <- filter(goback, studyid %in% del.22q.ids$studyid)
+
+rm(goback, tmp)
+
+#' They were dropped between 5/30 and 6/11.
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180611.rdata')
+tmp <- filter(goback, studyid %in% del.22q.ids$studyid)
+
+rm(goback, tmp)
