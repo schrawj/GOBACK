@@ -9,7 +9,7 @@
 
 require(survival); require(survminer)
 
-load('Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20180829.rdata')
 
 goback.nochrom$majordefect.cat <- factor(ifelse(goback.nochrom$majordefect.total == 0, 0,
                                                 ifelse(goback.nochrom$majordefect.total == 1, 1,
@@ -61,8 +61,7 @@ for (i in 1:length(outcomes)){
                            font.tickslab = c(15, 'bold', 'black'),
                            conf.int = FALSE,
                            linetype = 'strata', 
-                           legend.labs = c('No defect', '1 defect', '2 defects', '3 defects', '4 or more defects'),
-                           test.for.trend = TRUE)
+                           legend.labs = c('No defect', '1 defect', '2 defects', '3 defects', '4 or more defects'))
     
     the.plots.thicken[i] <- new.plot
     
@@ -82,8 +81,7 @@ for (i in 1:length(outcomes)){
                            font.tickslab = c(15, 'bold', 'black'),
                            conf.int = FALSE,
                            linetype = 'strata', 
-                           legend.labs = c('No defect', '1 defect', '2 defects', '3 defects', '4 or more defects'),
-                           test.for.trend = TRUE)
+                           legend.labs = c('No defect', '1 defect', '2 defects', '3 defects', '4 or more defects'))
     
     the.plots.thicken[i] <- new.plot
   }
@@ -91,3 +89,11 @@ for (i in 1:length(outcomes)){
 }
 
 names(the.plots.thicken) <- outcomes
+
+
+
+
+# Scratch paper -----------------------------------------------------------
+
+#' If needed, this line will perform a log-rank test for trend on the data.
+surv_pvalue(fit)
