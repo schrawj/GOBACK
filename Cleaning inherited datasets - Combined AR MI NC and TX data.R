@@ -1468,32 +1468,7 @@ rm(list = ls()); gc()
 
 
 
-# Split dataset into new chromosomal and non-chromosomal sets -------------
-
-require(dplyr)
-
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
-
-chrom <- filter(goback, any.birthdefect == 1 & any.genetic.anomaly == 1)
-no.chrom <- filter(goback, any.birthdefect == 1 & is.na(any.genetic.anomaly))
-control <- filter(goback, any.birthdefect == 0)
-
-rm(goback); gc()
-
-goback.nochrom <- rbind(no.chrom, control)
-save(goback.nochrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
-rm(goback.nochrom, no.chrom); gc()
-
-goback.chrom <- rbind(chrom, control)
-save(goback.chrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.chrom.v20180711.rdata')
-
-rm(list = ls()); gc()
-
-
-
 # Repair DiGeorge and compute 13q deletion variables ----------------------
-
-#' GitHub test.  This line of text doesn't exist in the version old genepi2.
 
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
@@ -1532,90 +1507,51 @@ require(dplyr)
 load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
 load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.transpose.v20180614.rdata')
 
-#' Compute del.22q variable in TX and NC kids.
-#' In this case I'm lucky that there are no synonymous NC codes to contend with.
+#' Compute del.22q in TX and NC kids. Happily, there are no synonymous NC codes to contend with.
 del.22q.ids <- select(filter(bd.codes.txnc.transpose, `758.370` == 1), studyid)
 
-#' A problem.  Only 143 of the 342 22q IDs appear in the current GOBACK dataset.
-#' They were dropped in the transition from the 20180530.2 to 20180611.1 versions.
-#' This happened because they also had the code for the clinical diagnosis.  We'll want
-#' to exclude children who only have the clinical DX, but include children with both.
-del.22q.in.goback <- filter(goback, studyid %in% del.22q.ids$studyid)
-del.22q.not.in.goback <- anti_join(del.22q.ids, goback, 'studyid')
+goback$del.22q <- ifelse(goback$studyid %in% del.22q.ids$studyid, 1, 
+                         ifelse(goback$studyid %in% del.22q.ids$studyid & goback$any.birthdefect == 0, 2, # Checking for errors.  Should be empty.
+                                ifelse(!(goback$studyid %in% del.22q.ids$studyid) & goback$any.birthdefect == 0, 0, NA)))
 
-rm(goback); load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180530.2.rdata')
+#' Compute del.13q in TX and NC kids. Again, no NC synonyms to contend with.
+del.13q.ids <- select(filter(bd.codes.txnc.transpose, `758.330` == 1), studyid)
 
-del.22q.to.add <- filter(filter(goback, studyid %in% del.22q.ids$studyid),
-                                studyid %in% del.22q.not.in.goback$studyid)
+goback$del.13q <- ifelse(goback$studyid %in% del.13q.ids$studyid, 1, 
+                         ifelse(goback$studyid %in% del.13q.ids$studyid & goback$any.birthdefect == 0, 2, # Checking for errors.  Should be empty.
+                                ifelse(!(goback$studyid %in% del.13q.ids$studyid) & goback$any.birthdefect == 0, 0, NA)))
 
-rm(goback);load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
+#' Remove DiGeorge and other chromosomal anomalies variables, re-order remaining coumns.
+goback <- goback[, c(1:103,157,158,106:156)]
 
-#' The number of columns is mismatched and the new ones will have to be computed in these kids.
-current.names <- names(goback)
-old.names <- names(del.22q.to.add)
-setdiff(current.names, old.names)
+save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180829.rdata')
 
+rm(list = ls()); gc()
 
 
 
+# Split dataset into new chromosomal and non-chromosomal sets -------------
 
-#' If I extract rows for the 181 kids I need to add back in, I expect that they should all have the 279.110 code or NC synonyms.
-#' That's exactly what I get.
-which(grepl('279.11', names(bd.codes.txnc.transpose)))
-tmp <- bd.codes.txnc.transpose[,c(1,97,98)]
-tmp <- filter(tmp, studyid %in% del.22q.to.add$studyid)
+require(dplyr)
 
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180829.rdata')
 
+chrom <- filter(goback, any.birthdefect == 1 & any.genetic.anomaly == 1)
+no.chrom <- filter(goback, any.birthdefect == 1 & is.na(any.genetic.anomaly))
+control <- filter(goback, any.birthdefect == 0)
 
+rm(goback); gc()
 
+goback.nochrom <- rbind(no.chrom, control)
+save(goback.nochrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20180829.rdata')
+rm(goback.nochrom, no.chrom); gc()
 
+goback.chrom <- rbind(chrom, control)
+save(goback.chrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.chrom.v20180829.rdata')
 
-
-
-
-
-# Scratch paper -----------------------------------------------------------
-
-goback$del.22q <- ifelse(goback$studyid %in% del.22q.ids$studyid, 1,
-                         ifelse(goback$any.birthdefect == 0 & !(goback$studyid %in% del.22q.ids$studyid),0,
-                                ifelse(goback$any.birthdefect == 0 & goback$studyid %in% del.22q.ids$studyid, 2, # Checking for errors.  Should be empty.
-                                       NA)))
-table(goback$del.22q, useNA = 'ifany')
+rm(list = ls()); gc()
 
 
-goback <- filter(goback, state %in% c('TX','NC'))
 
-#' It turns out that all these unmatched TX IDs are in the raw TX data.  They must have been dropped at some point.
-load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/Texas/tx.raw.data.rdata")
 
-tmp2 <- filter(tx.raw, birthID %in% del.22q.ids$studyid)
-tmp3 <- anti_join(del.22q.ids, tx.raw, c('studyid' = 'birthID'))
-print(tmp3$studyid)
 
-#' When and why were they dropped?
-#' They are all in the first version of goback.
-load("W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/GOBACK.v20171107.1.rdata")
-tmp <- filter(goback, studyid %in% del.22q.ids$studyid)
-
-rm(goback, tmp)
-
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20171206.1.rdata')
-tmp <- filter(goback, studyid %in% del.22q.ids$studyid)
-
-rm(goback, tmp)
-
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180530.1.rdata')
-tmp <- filter(goback, studyid %in% del.22q.ids$studyid)
-
-rm(goback, tmp)
-
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180530.2.rdata')
-del.22q.not.in.goback <- filter(goback, studyid %in% del.22q.ids$studyid)
-
-rm(goback, tmp)
-
-#' They were dropped between 5/30 and 6/11.
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180611.rdata')
-tmp <- filter(goback, studyid %in% del.22q.ids$studyid)
-
-rm(goback, tmp)
