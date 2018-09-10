@@ -10,8 +10,7 @@
 
 require(gmodels)
 
-setwd('Z:/Jeremy/GOBACK/Datasets/')
-load('goback.v20180611.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
 
 table(goback$state, goback$birth.yr, useNA = 'ifany')
 CrossTable(goback$state, prop.chisq = FALSE)
