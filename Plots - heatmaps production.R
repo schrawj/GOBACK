@@ -45,7 +45,7 @@ bd.cc.associations$signif.cat <- factor(
                                         ifelse(bd.cc.associations$ci.lower > 1 & bd.cc.associations$hr > 10, 5,
                                         ifelse(bd.cc.associations$ci.upper < 1 & bd.cc.associations$hr < 1, 1, NA)))))),
   levels = c(1:6),
-  labels = c('< 1','Null','1-5', '5.01-10','>10','Not Tested'))
+  labels = c('< 1','Null','1.01-5.00', '5.01-10.00','>10.00','Not Tested'))
 
 #' Intermediate number of gradations, all red.
 #' Do not plot title, or force <1 category to display in legend.
