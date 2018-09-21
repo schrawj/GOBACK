@@ -28,8 +28,10 @@ solid.tumors <- subset(solid.tumors, !(solid.tumors %in% c(NA, 'all','leu.other'
 
 goback.nochrom$any.non.cns.solid.tumor <- ifelse(goback.nochrom$cancer1 %in% solid.tumors, 1, 0)
 
+#' Need to wrap title text for CNS panel.
 outcomes <- c('cancer','any.heme.cancer','cns.any','any.non.cns.solid.tumor')
-outcomes.fancy <- c('Cancer','Hematologic Cancer', "Central Nervous Sytem (CNS) Tumor", 'Non-CNS Solid Tumor')
+outcomes.fancy <- c('Cancer','Hematologic Cancers', paste("Central Nervous Sytem", '\n', "    (CNS) Tumors"), 'Non-CNS Solid Tumors')
+panels <- c('A.', 'B.','C.','D.')
 
 the.plots.thicken <- list()
 
@@ -51,17 +53,18 @@ for (i in 1:length(outcomes)){
     
     new.plot <- ggsurvplot(fit, 
                            fun = 'event',
+                           title = paste(panels[i],'Cumulative Incidence of',outcomes.fancy[i]),
+                           font.title = c(25, 'bold','black'),
+                           legend = 'none',
                            xlim = c(0,18),
                            ylim = c(0,0.015),
-                           ylab = paste("Cumulative Incidence of any",outcomes.fancy[i]),
+                           ylab = '',
                            xlab = "Time in Years",
-                           font.x = c(15, 'bold', 'black'),
-                           font.y = c(15, 'bold', 'black'),
-                           font.legend = c(15, 'bold', 'black'),
-                           font.tickslab = c(15, 'bold', 'black'),
+                           font.x = c(20, 'bold', 'black'),
+                           font.y = c(20, 'bold', 'black'),
+                           font.tickslab = c(20, 'bold', 'black'),
                            conf.int = FALSE,
-                           linetype = 'strata', 
-                           legend.labs = c('No defect', '1 defect', '2 defects', '3 defects', '4 or more defects'))
+                           linetype = 'strata')
     
     the.plots.thicken[i] <- new.plot
     
@@ -71,17 +74,19 @@ for (i in 1:length(outcomes)){
     
     new.plot <- ggsurvplot(fit, 
                            fun = 'event',
+                           title = paste(panels[i],'Cumulative Incidence of',outcomes.fancy[i]),
+                           font.title = c(25, 'bold','black'),
+                           legend = 'none',
                            xlim = c(0,18),
                            ylim = c(0,0.01),
-                           ylab = paste("Cumulative Incidence of any",outcomes.fancy[i]),
                            xlab = "Time in Years",
-                           font.x = c(15, 'bold', 'black'),
-                           font.y = c(15, 'bold', 'black'),
-                           font.legend = c(15, 'bold', 'black'),
-                           font.tickslab = c(15, 'bold', 'black'),
+                           ylab = '',
+                           font.x = c(20, 'bold', 'black'),
+                           font.y = c(20, 'bold', 'black'),
+                           font.legend = c(20, 'bold', 'black'),
+                           font.tickslab = c(20, 'bold', 'black'),
                            conf.int = FALSE,
-                           linetype = 'strata', 
-                           legend.labs = c('No defect', '1 defect', '2 defects', '3 defects', '4 or more defects'))
+                           linetype = 'strata')
     
     the.plots.thicken[i] <- new.plot
   }
@@ -92,8 +97,41 @@ names(the.plots.thicken) <- outcomes
 
 
 
-
 # Scratch paper -----------------------------------------------------------
 
+#' A version which will print the legend.
+new.plot <- ggsurvplot(fit, 
+                       fun = 'event',
+                       title = paste(panels[i],'Cumulative Incidence of',outcomes.fancy[i]),
+                       font.title = c(25, 'bold','black'),
+                       xlim = c(0,18),
+                       ylim = c(0,0.015),
+                       ylab = '',
+                       xlab = "Time in Years",
+                       font.x = c(20, 'bold', 'black'),
+                       font.y = c(20, 'bold', 'black'),
+                       font.legend = c(20, 'bold', 'black'),
+                       font.tickslab = c(20, 'bold', 'black'),
+                       conf.int = FALSE,
+                       linetype = 'strata', 
+                       legend.title = 'Number of birth defects',
+                       legend.labs = c('None', '1', '2', '3', '4 or more'))
+
 #' If needed, this line will perform a log-rank test for trend on the data.
-surv_pvalue(fit)
+for (i in 1:length(outcomes)){
+  
+  goback.surv <- data.frame(studyid = goback.nochrom$studyid,
+                            time = goback.nochrom$person.yrs, 
+                            cancer = goback.nochrom[,outcomes[i]], 
+                            defect = goback.nochrom$majordefect.cat,
+                            sex = factor(goback.nochrom$sex, 
+                                         levels = c(1,2),
+                                         labels = c('Male','Female')),
+                            m.age = goback.nochrom$m.age,
+                            state = goback.nochrom$state)
+  
+  fit <- survfit(Surv(time, cancer) ~ defect, data = goback.surv)
+  p.trend <- surv_pvalue(fit)
+  print(paste('p-value, test for trend, number of birth defects and risk of', outcomes[i],'is',p.trend))
+  
+}
