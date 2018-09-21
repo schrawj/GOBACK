@@ -447,3 +447,127 @@ write.xlsx(compare, file = 'W:/Old_genepi2/Jeremy/GOBACK/R outputs/goback.cox.ph
            row.names = FALSE, sheetName = 'Five Comorbid Cases', append = TRUE)
 
 rm(list = ls()); gc()
+# Investigate Trisomy 18-Wilms tumor --------------------------------------
+
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+#' 2018.09.20.
+#' 
+#' Sonja Rasmussen mentioned that increased risk of Wilms tumor in kids
+#' with Trisomy 18 is a well-accepted association among geneticists.
+#' My code did not generate a model for this association, meaning there 
+#' were less than 5 co-morbid cases. Investigate whether there were any
+#' comorbid cases, and if there were some, run a Cox model.
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+
+require(dplyr); require(survival)
+
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.chrom.v20180829.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.transpose.v20180712.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.transpose.v20180614.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180712.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/cancer.codes.v20180227.1.rdata')
+
+#' 1,466 kids tagged as having Trisomy 18. 3 of them have Wilms. 
+tmp <- filter(goback.chrom, trisomy18 == 1)
+table(tmp$state)
+tmp <- filter(tmp, nephro == 1)
+
+#' Let's double check that the Trisomy 18 variable is correct.
+which(grepl('758.2', names(bd.codes.txnc.transpose)))
+
+#' There are 1081 kids in the birth defects data frame with codes for Trisomy 18 and 1034 in the goback.chrom
+#' data. The codes used to compute trisomy 18 are correct. Assume these children were dropped at some point.
+edwards <- bd.codes.txnc.transpose[, c(1, 2194:2201)]
+edwards$flag <- ifelse(rowSums(edwards[2:9], na.rm = TRUE) >= 1, 1, 0)
+edwards <- filter(edwards, flag == 1)
+
+tmp <- filter(goback.chrom, studyid %in% edwards$studyid)
+
+#' There are only 3 cases but let's run a Cox model anyways and see what we get.
+edwards <- coxph(Surv(person.yrs, nephro) ~ trisomy18 + sex + m.age + birth.wt, data = goback.chrom)
+edwards.coef <- summary(edwards)$coefficients
+
+estimates <- data.frame(defect = 'trisomy18', 
+                        cancer = 'nephro', 
+                        HR = edwards.coef[1,2], 
+                        ci.lower = exp(edwards.coef[1,1]-(1.96*edwards.coef[1,3])), 
+                        ci.upper = exp(edwards.coef[1,1]+(1.96*edwards.coef[1,3])),
+                        p.value.coef = edwards.coef[1,5])
+
+
+
+# Investigate co-occurring birth defects in ASD/VSD/PDA -------------------
+
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+#' 2018.09.20.
+#' 
+#' Sonja Rasmussen mentioned that she didn't see clear biologic plausibility
+#' between certain minor defects - referencing PDA specifically - and 
+#' childhood cancer. She wonders whether these are co-occurring in children
+#' with more serious defects.
+#' 
+#' That's probably the case and we've suspected this for a long time.
+#' In fact, the "number of defects in children with and without cancer" 
+#' Excel file I generated way back when points to this.
+#' 
+#' Unfortunately, I did a shitty job labelling the columns in that file.
+#' 
+#' Let's check out some basic info on the co-occurring birth defects in 
+#' kids with PDA, ASD, and VSD.
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+
+require(dplyr); require(xlsx)
+
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20180829.rdata')
+
+out <- data.frame(defect = as.character(),
+                  n.co.occurring.cancers = as.numeric(),
+                  percent.w.co.occurring.defect.no.cancer = as.numeric(),
+                  mean.co.occurring.defects.no.cancer = as.numeric(),
+                  sd.co.occurring.defects.no.cancer = as.numeric(),
+                  percent.w.co.occurring.defect.cancer = as.numeric(),
+                  mean.co.occurring.defects.cancer = as.numeric(),
+                  sd.co.occurring.defects.cancer = as.numeric(),
+                  p.kruskal = as.numeric(),
+                  dataset = as.character())
+
+#' Some new variables that will be necessary or expedient for this analysis.
+goback.nochrom$n.index.defects <- rowSums(goback.nochrom[c(54,55,58)], na.rm = TRUE)
+goback.nochrom$has.an.index.defect <- ifelse(goback.nochrom$n.index.defects >= 1, 1, 0) 
+goback.nochrom <- filter(goback.nochrom, has.an.index.defect == 1)
+goback.nochrom$n.co.occurring.defects <- goback.nochrom$defect.total - goback.nochrom$n.index.defects
+goback.nochrom$has.co.occurring.defect <- ifelse(goback.nochrom$n.co.occurring.defects >= 1, 1, 0)
+
+for (i in c(54,55,58)){
+  
+  n.cancer <- table(goback.nochrom[,i], goback.nochrom$cancer)[1,2]
+  
+  prop <- with(subset(goback.nochrom, goback.nochrom[,i] == 1),
+                            table(has.co.occurring.defect, cancer))
+  
+  mean.defects <- aggregate(n.co.occurring.defects ~ cancer + goback.nochrom[,i], data = goback.nochrom, mean)
+  
+  sd.defects <- aggregate(n.co.occurring.defects ~ cancer + goback.nochrom[,i], data = goback.nochrom, sd)
+  
+  test <- kruskal.test(n.co.occurring.defects ~ cancer, data = subset(goback.nochrom, goback.nochrom[,i] == 1))$p.value
+  
+  new <- data.frame(defect = names(goback.nochrom[i]),
+                    n.co.occurring.cancers = n.cancer,
+                    percent.w.co.occurring.defect.no.cancer = prop[2,1]/sum(prop[,1]),
+                    mean.co.occurring.defects.no.cancer = mean.defects[1,3],
+                    sd.co.occurring.defects.no.cancer = sd.defects[1,3],
+                    percent.w.co.occurring.defect.cancer = prop[2,2]/sum(prop[,2]),
+                    mean.co.occurring.defects.cancer = mean.defects[2,3],
+                    sd.co.occurring.defects.cancer = sd.defects[2,3],
+                    p.kruskal = test,
+                    dataset = 'goback.nochrom.v20180829')
+  
+  out <- rbind(out, new)
+  
+}
+
+write.xlsx(out, file = 'C:/Users/schraw/Desktop/co.occurring.defects.in.minor.chd.cases.xlsx', row.names = FALSE)
