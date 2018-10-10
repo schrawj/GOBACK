@@ -23,17 +23,17 @@ bd.cc.associations <- left_join(bd.cc.associations, goback.coxmodels, by = c('de
 bd.cc.associations$cancer <- factor(bd.cc.associations$cancer, 
                                     levels = c('all','aml','hl','nhl','cns.any','astro','medullo', 'retino',
                                                'neuro','nephro','hepato','bone.any','rms.any','soft.other','gct.any'),
-                                    labels = c('ALL', 'AML', "Hodgkin's Lymphoma", "Non-Hodgkin's Lymphoma", 'Any CNS Tumor', 'Astrocytoma','Medulloblastoma', 'Retinoblastoma',
-                                               'Neuroblastoma',"Wilm's Tumor",'Hepatoblastoma','Any Bone Tumor','Rhabdomyosarcoma','Non-RMS Soft Tissue Sarcoma',
+                                    labels = c('ALL', 'AML', "Hodgkin Lymphoma", "Non-Hodgkin Lymphoma", 'Any CNS Tumor', 'Astrocytoma','Medulloblastoma', 'Retinoblastoma',
+                                               'Neuroblastoma',"Wilms Tumor",'Hepatoblastoma','Any Bone Tumor','Rhabdomyosarcoma','Non-RMS Soft Tissue Sarcoma',
                                                'Any Germ Cell Tumor'))
 
 bd.cc.associations$defect <- factor(bd.cc.associations$defect, 
                                     levels = c( "conganomalies.cns",               "conganomalies.eye",               "conganomalies.ear.face.neck",     "conganomalies.heart.circsys",    
                                                 "conganomalies.respsys",           "oral.clefts",                     "conganomalies.digestivesystem",   "conganomalies.genitalandurinary",
                                                 "conganomalies.musculoskelsys",    "conganomalies.integument",        "any.chromosomal.anomaly"),
-                                    labels = c('Any CNS Anomaly', 'Any Eye Anomaly', 'Any Ear, Face or Neck Anomaly', 'Any Heart or Circulatory System Anomaly',
-                                               'Any Respiratory System Anomaly', 'Oral Clefts', 'Any Digestive System Anomaly', 'Any Genitourinary Anomaly',
-                                               'Any Musculoskeletal Anomaly', 'Any Integument Anomaly', 'Any Chromosomal Anomaly'))
+                                    labels = c('Any CNS Defect', 'Any Eye Defect', 'Any Ear, Face or Neck Defect', 'Any Heart or Circulatory System Defect',
+                                               'Any Respiratory System Defect', 'Oral Clefts', 'Any Digestive System Defect', 'Any Genitourinary Defect',
+                                               'Any Musculoskeletal Defect', 'Any Integument Defect', 'Any Chromosomal Anomaly'))
 
 #' Bins associations into the currently agreed upon categories based on their HR.
 bd.cc.associations$signif.cat <- 9999
@@ -55,5 +55,8 @@ p <-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
              guides(fill = guide_legend(title='Hazard Ratio')) +
              labs(x = "Cancer", y = "Anomaly") +
              theme_bw() +
-             theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+             theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+             theme(axis.title.x = element_text(face = 'bold', size = 15)) +
+             theme(axis.title.y = element_text(face = "bold", size = 15)) +
+             theme(legend.title = element_text(face = 'bold'))
 print(p)
