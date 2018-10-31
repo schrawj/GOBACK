@@ -98,3 +98,55 @@ goback.ids <- left_join(goback.ids,
 goback.ids <- rename(goback.ids, cancer.registry.id = patientid); rm(tx.can)
 
 save(goback.ids, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v20180908.rdata')
+
+
+
+# Find phenotypically similar children ------------------------------------
+
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+#' 2018.10.10.
+#' 
+#' Philip suggested that we might look for children who have similar sets 
+#' of defects but no choanal atresia and have Sharon review.
+#' 
+#' Begin by finding leukemia cases and ALL cases with >= 3 birth defects.
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+
+require(dplyr); require(xlsx)
+
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20180829.rdata")
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180712.rdata")
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata")
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.bpa.to.icd.mappings.rdata")
+
+candidates <- filter(goback.nochrom, leu.any == 1)
+candidates <- subset(candidates, defect.total >= 3)
+candidates <- subset(candidates, state != 'AR')
+candidates <- subset(candidates, conganomalies.heart.circsys == 1)
+candidates <- subset(candidates, conganomalies.respsys == 1)
+
+leu.all.txnc <- left_join(select(filter(candidates, state %in% c('TX','NC')), studyid, sex, cancer1), bd.codes.txnc[,1:25], by = 'studyid')
+leu.all.mi <- left_join(select(filter(candidates, state == 'MI'), studyid, sex, cancer1), bd.codes.mi, by = 'studyid')
+names(leu.all.txnc) <- c('studyid','sex','cancer1',rep(paste0('code',1:24)))
+names(leu.all.mi) <- c('studyid','sex','cancer1',rep(paste0('code',1:24)))
+
+candidates <- rbind(leu.all.txnc, leu.all.mi)
+
+out <- data.frame(candidates[,1:3])
+
+for (i in 4:27){
+  
+  tmp <- select(candidates, 1, i)
+  names(tmp)[2] <- 'code'
+  tmp <- left_join(tmp, select(map, bpa.number, bpaname), by = c('code' = 'bpa.number'))
+  names(tmp)[2:3] <- paste0(names(tmp)[2:3],i-2)
+  
+  out <- left_join(out, tmp, 'studyid')
+  
+}
+
+write.xlsx(out, file = 'W:/Old_genepi2/Jeremy/GOBACK/R outputs/usp9x.candidate.leukemias.v20181010.xlsx', row.names = FALSE, showNA = FALSE)
+
+rm(list = ls()); gc()
