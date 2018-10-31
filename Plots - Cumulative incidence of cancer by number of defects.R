@@ -28,9 +28,8 @@ solid.tumors <- subset(solid.tumors, !(solid.tumors %in% c(NA, 'all','leu.other'
 
 goback.nochrom$any.non.cns.solid.tumor <- ifelse(goback.nochrom$cancer1 %in% solid.tumors, 1, 0)
 
-#' Need to wrap title text for CNS panel.
 outcomes <- c('cancer','any.heme.cancer','cns.any','any.non.cns.solid.tumor')
-outcomes.fancy <- c('Cancer','Hematologic Cancers', paste("Central Nervous Sytem", '\n', "    (CNS) Tumors"), 'Non-CNS Solid Tumors')
+outcomes.fancy <- c('Cancer','Hematologic Malignancies', "Central Nervous Sytem (CNS) Tumors", 'Non-CNS Solid Tumors')
 panels <- c('A.', 'B.','C.','D.')
 
 the.plots.thicken <- list()
@@ -54,8 +53,8 @@ for (i in 1:length(outcomes)){
     new.plot <- ggsurvplot(fit, 
                            fun = 'event',
                            title = paste(panels[i],'Cumulative Incidence of',outcomes.fancy[i]),
-                           font.title = c(25, 'bold','black'),
-                           legend = 'none',
+                           font.title = c(20, 'bold','black'),
+                           legend.labs = c('None', 'One', 'Two', 'Three', 'Four or more'),
                            xlim = c(0,18),
                            ylim = c(0,0.015),
                            ylab = '',
@@ -64,9 +63,25 @@ for (i in 1:length(outcomes)){
                            font.y = c(20, 'bold', 'black'),
                            font.tickslab = c(20, 'bold', 'black'),
                            conf.int = FALSE,
-                           linetype = 'strata')
+                           linetype = 'strata',
+                           risk.table = TRUE)
     
-    the.plots.thicken[i] <- new.plot
+    new.plot$plot <- new.plot$plot + theme(legend.position = 'none')
+    
+    new.plot$table <- new.plot$table +
+                      ggtitle('Number of Individuals at Risk, According to Number of Major Birth Defects') + 
+                      ylab('No. of Birth Defects') +
+                      theme(axis.text.x = element_blank(),
+                            axis.title.x = element_blank(),
+                            legend.text = element_blank(),
+                            legend.position = 'none',
+                            axis.ticks.x = element_blank(),
+                            axis.ticks.y = element_blank(),
+                            axis.title.y = element_blank(),
+                            axis.text.y = element_text(size = 15, face = 'bold'),
+                            plot.title = element_text(size = 15, face = 'bold', hjust = 0.5))
+    
+    the.plots.thicken[[i]] <- new.plot
     
   }
   
@@ -75,25 +90,38 @@ for (i in 1:length(outcomes)){
     new.plot <- ggsurvplot(fit, 
                            fun = 'event',
                            title = paste(panels[i],'Cumulative Incidence of',outcomes.fancy[i]),
-                           font.title = c(25, 'bold','black'),
-                           legend = 'none',
+                           font.title = c(20, 'bold','black'),
+                           legend.labs = c('None', 'One', 'Two', 'Three', 'Four or more'),
                            xlim = c(0,18),
                            ylim = c(0,0.01),
-                           xlab = "Time in Years",
                            ylab = '',
+                           xlab = "Time in Years",
                            font.x = c(20, 'bold', 'black'),
                            font.y = c(20, 'bold', 'black'),
-                           font.legend = c(20, 'bold', 'black'),
                            font.tickslab = c(20, 'bold', 'black'),
                            conf.int = FALSE,
-                           linetype = 'strata')
+                           linetype = 'strata',
+                           risk.table = TRUE)
     
-    the.plots.thicken[i] <- new.plot
+    new.plot$plot <- new.plot$plot + theme(legend.position = 'none')
+    
+    new.plot$table <- new.plot$table +
+                      ggtitle('Number of Individuals at Risk, According to Number of Major Birth Defects') + 
+                      ylab('No. of Birth Defects') +
+                      theme(axis.text.x = element_blank(),
+                            axis.title.x = element_blank(),
+                            legend.text = element_blank(),
+                            legend.position = 'none',
+                            axis.ticks.x = element_blank(),
+                            axis.ticks.y = element_blank(),
+                            axis.title.y = element_blank(),
+                            axis.text.y = element_text(size = 15, face = 'bold'),
+                            plot.title = element_text(size = 15, face = 'bold', hjust = 0.5))
+    
+    the.plots.thicken[[i]] <- new.plot
   }
   
 }
-
-names(the.plots.thicken) <- outcomes
 
 
 
@@ -135,3 +163,46 @@ for (i in 1:length(outcomes)){
   print(paste('p-value, test for trend, number of birth defects and risk of', outcomes[i],'is',p.trend))
   
 }
+
+
+
+
+
+# Scratch paper -----------------------------------------------------------
+
+outcomes.fancy <- c('Cancer','Hematologic Malignancies', "Central Nervous Sytem (CNS) Tumors", 'Non-CNS Solid Tumors')
+
+new.plot <- ggsurvplot(fit, 
+                       fun = 'event',
+                       title = paste(panels[i],'Cumulative Incidence of',outcomes.fancy[i]),
+                       font.title = c(20, 'bold','black'),
+                       legend.labs = c('None', 'One', 'Two', 'Three', 'Four or more'),
+                       xlim = c(0,18),
+                       ylim = c(0,0.015),
+                       ylab = '',
+                       xlab = "Time in Years",
+                       font.x = c(20, 'bold', 'black'),
+                       font.y = c(20, 'bold', 'black'),
+                       font.tickslab = c(20, 'bold', 'black'),
+                       conf.int = FALSE,
+                       linetype = 'strata',
+                       risk.table = TRUE,
+                       fontsize = 6)
+
+new.plot$plot <- new.plot$plot + theme(legend.position = 'none')
+
+new.plot$table <- new.plot$table +
+                  ggtitle('Number of Individuals at Risk, According to Number of Major Birth Defects') + 
+                  ylab('No. of Birth Defects') +
+                  theme(axis.text.x = element_blank(),
+                        axis.title.x = element_blank(),
+                        legend.text = element_blank(),
+                        legend.position = 'none',
+                        axis.ticks.x = element_blank(),
+                        axis.ticks.y = element_blank(),
+                        axis.title.y = element_blank(),
+                        axis.text.y = element_text(size = 15, face = 'bold'),
+                        plot.title = element_text(size = 15, face = 'bold', hjust = 0.5))
+                  
+new.plot
+
