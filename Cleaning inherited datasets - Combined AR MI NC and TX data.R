@@ -453,8 +453,6 @@ table(tmp2$flag, useNA = 'always')
 
 # Clean blank AR birth defects variables ----------------------------------
 
-
-
 load('goback.v20171201.2.rdata')
 load("birth.defects.codes.rdata")
 
@@ -1530,11 +1528,41 @@ rm(list = ls()); gc()
 
 
 
+# Correct a misclassified child from MI -----------------------------------
+
+require(dplyr)
+
+#' A microscale fix. One MI child with an unspecified chromosomal anomaly was considered 
+#' to have zero major birth defects. Update to 1. 
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180829.rdata')
+
+table(goback$majordefect.total, goback$any.genetic.anomaly, useNA = 'ifany')
+
+goback$majordefect.total <- ifelse((!is.na(goback$any.genetic.anomaly) & goback$any.genetic.anomaly == 1 & goback$majordefect.total < 1), 1, goback$majordefect.total)
+
+save(goback, file = paste0('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v',Sys.Date(),'.rdata'))
+
+rm(list = ls()); gc()
+
+
+
+# Remove obsolete variables -----------------------------------------------
+
+require(dplyr)
+
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180829.rdata")
+
+goback <- select(goback, 
+                 -cancertime1, #' Contains errors, replaced by person.yrs.
+                 -dxby18) #' Redundant, what with person.yrs being around.
+
+save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190318.rdata')
+
 # Split dataset into new chromosomal and non-chromosomal sets -------------
 
 require(dplyr)
 
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180829.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v')
 
 chrom <- filter(goback, any.birthdefect == 1 & any.genetic.anomaly == 1)
 no.chrom <- filter(goback, any.birthdefect == 1 & is.na(any.genetic.anomaly))

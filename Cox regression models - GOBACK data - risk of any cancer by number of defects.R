@@ -32,7 +32,7 @@ goback.surv <- data.frame(studyid = goback.nochrom$studyid,
                           m.age = goback.nochrom$m.age,
                           state = goback.nochrom$state)
 
-cox <- cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex + state, data = goback.surv)
+cox <- coxph(Surv(time, cancer) ~ defect + m.age + sex + state, data = goback.surv)
 cox.coef <- as.data.frame(summary(cox)$coefficients)
 
 estimates <- data.frame(var = rownames(cox.coef), 

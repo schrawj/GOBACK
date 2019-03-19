@@ -21,9 +21,10 @@
 require(xlsx); require(dplyr); require(survival)
 
 #' Choose 10% of models for sensitivity analysis.
-models <- read.xlsx(file = 'W:/Old_genepi2/Jeremy/GOBACK/R outputs/goback.cox.models.v20180119.xlsx',
-                    header = TRUE, stringsAsFactors = FALSE, sheetIndex = 1)
+models <- read.csv(file = 'W:/Old_genepi2/Jeremy/GOBACK/R outputs/goback.cox.ph.top.hits.v20180612.csv',
+                    header = TRUE, stringsAsFactors = FALSE)
 names(models) <- tolower(names(models))
+
 #' Flag any defects that should be modeled in the syndromic dataset. For simplicity, will call these ineligible.
 models$use.syndromic.cases <- ifelse(models$defect %in% c('down.syndrome','conganomalies.chromosomalanomalies.other','chromosomalanomalies',
                                                           'di.george.syndrome','trisomy18'), 1, 0)
