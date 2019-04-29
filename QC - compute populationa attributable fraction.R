@@ -12,7 +12,7 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180829.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180829.rdata')
 
 # Subsetting operations for parts 2 and 3 ---------------------------------
 
