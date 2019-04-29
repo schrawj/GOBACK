@@ -10,6 +10,9 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
+#' TODO: Children in MI with 0 for person years.
+#' TODO: Fix pancreatoblastoma and pulmonary blastoma; call embryonal.
+
 # User-defined functions --------------------------------------------------
 get.standard.dem.vars <- function(x){
   require(dplyr)
@@ -1456,7 +1459,7 @@ rm(list = ls()); gc()
 # Replace 99 with NA for missing paternal age in TX -----------------------
 
 #' During the initial phase of the DS-ALL BD project, I noticed that missing paternal ages in TX may be coded 99.
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180611.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180611.rdata')
 
 goback$f.age <- ifelse(goback$f.age == 99, NA, goback$f.age)
 
@@ -1502,7 +1505,7 @@ rm(list = ls()); gc()
 
 require(dplyr)
 
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180711.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180711.rdata')
 load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.transpose.v20180614.rdata')
 
 #' Compute del.22q in TX and NC kids. Happily, there are no synonymous NC codes to contend with.
@@ -1534,7 +1537,7 @@ require(dplyr)
 
 #' A microscale fix. One MI child with an unspecified chromosomal anomaly was considered 
 #' to have zero major birth defects. Update to 1. 
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180829.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20180829.rdata')
 
 table(goback$majordefect.total, goback$any.genetic.anomaly, useNA = 'ifany')
 
@@ -1558,11 +1561,83 @@ goback <- select(goback,
 
 save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190318.rdata')
 
+# Reclassify gonadal carcinomas as GCTs -----------------------------------
+
+#'---------------------------------------------------------------------------------------
+#'---------------------------------------------------------------------------------------
+#' 2019.04.29.
+#' 
+#' Some children considered to have other unspecified cancers should be transferred to
+#' gonadal GCTs, as not all codes in the ICCC-3 10c,d,e range appear to have been 
+#' properly handled. 
+#' 
+#' See https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3931133/ for the list of codes used 
+#' to compute GCTs.
+#'---------------------------------------------------------------------------------------
+#'---------------------------------------------------------------------------------------
+
+require(dplyr)
+
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190318.rdata")
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/cancer.codes.v20180227.1.rdata")
+
+gcts <- filter(goback, other.any == 1)
+gcts <- filter(cancer.codes, studyid %in% c(gcts$studyid))
+gcts <- filter(gcts, site_code1 %in% c(569, 620:629))
+gcts <- select(arrange(gcts, site_code1, morph31), studyid, morph31, site_code1, behavior1)
+
+#' All cases are malignant, all have morphology and site codes consistent with gonadal GCTs.
+gcts[,c('morph31','site_code1','behavior1')]
+
+goback$gct.gonad <- ifelse(goback$studyid %in% c(gcts$studyid), 1, goback$gct.gonad)
+goback$gct.any <- ifelse(goback$studyid %in% c(gcts$studyid), 1, goback$gct.any)
+goback$other.any <- ifelse(goback$studyid %in% c(gcts$studyid), 0, goback$other.any)
+
+save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190429.1.rdata')
+
+rm(list = ls()); gc()
+
+
+
+# Ependymoma & PNET not counted towards total CNS tumors ------------------
+
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190429.1.rdata')
+
+goback$cns.any <- ifelse(goback$pnet == 1 | goback$ependymoma == 1, 1, goback$cns.any)
+
+#' Review the rest of the data to make sure this is an isolated issue.
+check.sums <- function(columns, category){
+  
+  for (i in columns){
+    
+    tmp.can <- which(names(goback) == i)
+    tmp.cat <- which(names(goback) == category)
+    print(gmodels::CrossTable(goback[,tmp.can], goback[,tmp.cat], prop.chisq = F, dnn = c(names(goback[tmp.can]),names(goback[tmp.cat]))))
+    
+  }
+}
+
+check.sums(c('all','aml','leu.other'), 'leu.any')
+check.sums(c('astro','medullo','ependymoma','pnet','cns.other'), 'cns.any')
+check.sums(c('hl','nhl','lym.other'), 'lym.any')
+check.sums(c('neuro'), 'pns.any')
+check.sums(c('nephro','renal.other'), 'renal.any')
+check.sums(c('hepato','hepatic.other'), 'hepatic.any')
+check.sums(c('osteo','ewing','bone.other'), 'bone.any')
+check.sums(c('erms','arms','rms.other'), 'rms.any')
+check.sums(c('gct.gonad','gct.intra','gct.extra'), 'gct.any')
+
+save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190429.2.rdata')
+
+rm(list = ls()); gc()
+
+
+
 # Split dataset into new chromosomal and non-chromosomal sets -------------
 
 require(dplyr)
 
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190429.2.rdata')
 
 chrom <- filter(goback, any.birthdefect == 1 & any.genetic.anomaly == 1)
 no.chrom <- filter(goback, any.birthdefect == 1 & is.na(any.genetic.anomaly))
@@ -1571,11 +1646,11 @@ control <- filter(goback, any.birthdefect == 0)
 rm(goback); gc()
 
 goback.nochrom <- rbind(no.chrom, control)
-save(goback.nochrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20180829.rdata')
+save(goback.nochrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20190429.rdata')
 rm(goback.nochrom, no.chrom); gc()
 
 goback.chrom <- rbind(chrom, control)
-save(goback.chrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.chrom.v20180829.rdata')
+save(goback.chrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.chrom.v20190429.rdata')
 
 rm(list = ls()); gc()
 
