@@ -321,8 +321,6 @@ mi.can <- rename(mi.can, morphology = morph31, site.code = icdoii1)
 
 save(mi.can, file = './mi.cancer1.codes.rdata')
 
-
-
 # Compute num.diagnoses ---------------------------------------------------
 load('./mi.v20171005.4.rdata')
 
@@ -499,8 +497,104 @@ mi$studyid <- paste0('mi',mi$studyid)
 
 save(mi, file = './mi.v20171006.4.rdata')
 
+# Format the updated (May 2022) cancer registry data ----------------------
 
+require(tidyverse); require(magrittr); require(haven)
 
+setwd('//smb-main.ad.bcm.edu/GenEpi3/TiffanyChambers/GOBACK Data/Michigan Data 2021/Updated Data (June 2021)/Stata/')
 
+mi <- read_dta('all years (harmonized).dta')
 
+saveRDS(mi,
+        '//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Old_Datasets/Michigan/mi.raw.data.v20220511.rds')
 
+mi <- readRDS('//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Old_Datasets/Michigan/mi.raw.data.v20220511.rds')
+
+#' Compute maternal race/ethnicity.
+mi <- mi %>% 
+  select(-M_RACE) %>% 
+  filter(BIRTH_YR > 1991) %>% 
+  mutate(race.all.fields = paste0(Birth_MomRace, Birth_MomRace2b2006, Birth_MomRace3b2006, Birth_MomRace4b2006, Birth_MomRace5b2006) %>% 
+           str_remove_all('[\\Q.\\E09*]') %>% # remove values that do not correspond to valid categories per emails from MI registry staff
+           str_trim(side = 'both') %>% # remove white spaces
+           str_replace_all('[5678AGKOSV]', '4') %>% # consolidate different categories for Asians
+           gsub('([[:digit:]])\\1+', '\\1', .), # 11 or 111 etc. will be converted to 1.
+         m.race = ifelse(race.all.fields == '1', 2, 
+                         ifelse(race.all.fields == '2', 3, 
+                                ifelse(race.all.fields == '4', 4, 
+                                       ifelse(race.all.fields == '', 7, 
+                                              ifelse(race.all.fields == '3', 6, 5))))),
+         Birth_MomHispb2006 = ifelse(is.na(Birth_MomHispb2006), 9, Birth_MomHispb2006))
+
+mi <- mi %>% 
+  mutate(m.race = ifelse(Birth_MomHispb2006 == 1, 1, m.race))
+
+#' Some cancer cases were diagnosed after the age of 20 years.
+#' They should be considered unaffected.
+#mi %<>% mutate(cancer = ifelse(Cancer_AgeDiag1 > 18, 0, cancer))
+mi %<>% mutate(cancer = ifelse(ageatdx > 216, 0, cancer))
+
+#' Cancer should be set to zero for unaffected children.
+#' Age at cancer diagnosis should be set to missing in unaffected children.
+mi %<>% mutate(cancer = ifelse(is.na(cancer), 0, cancer),
+               ageatdx = ifelse(cancer == 0, NA, ageatdx))
+
+#' Strip tumor data for cancers diagnosed after 18 years of age.
+mi %<>% 
+  mutate(Cancer_Histology1 = ifelse(Cancer_AgeDiag1 > 18, NA, Cancer_Histology1),
+         Cancer_BehaviorICDO31 = ifelse(Cancer_AgeDiag1 > 18, NA, Cancer_BehaviorICDO31),
+         Cancer_PrimarySite1 = ifelse(Cancer_AgeDiag1 > 18, NA, Cancer_PrimarySite1),
+         Cancer_Laterality1 = ifelse(Cancer_AgeDiag1 > 18, NA, Cancer_Laterality1),
+         Cancer_SEERSumStg20001 = ifelse(Cancer_AgeDiag1 > 18, NA, Cancer_SEERSumStg20001),
+         
+         Cancer_Histology2 = ifelse(Cancer_AgeDiag2 > 18, NA, Cancer_Histology2),
+         Cancer_BehaviorICDO32 = ifelse(Cancer_AgeDiag2 > 18, NA, Cancer_BehaviorICDO32),
+         Cancer_PrimarySite2 = ifelse(Cancer_AgeDiag2 > 18, NA, Cancer_PrimarySite2),
+         Cancer_Laterality2 = ifelse(Cancer_AgeDiag2 > 18, NA, Cancer_Laterality2),
+         Cancer_SEERSumStg20002 = ifelse(Cancer_AgeDiag2 > 18, NA, Cancer_SEERSumStg20002),
+         
+         Cancer_Histology3 = ifelse(Cancer_AgeDiag3 > 18, NA, Cancer_Histology3),
+         Cancer_BehaviorICDO33 = ifelse(Cancer_AgeDiag3 > 18, NA, Cancer_BehaviorICDO33),
+         Cancer_PrimarySite3 = ifelse(Cancer_AgeDiag3 > 18, NA, Cancer_PrimarySite3),
+         Cancer_Laterality3 = ifelse(Cancer_AgeDiag3 > 18, NA, Cancer_Laterality3),
+         Cancer_SEERSumStg20003 = ifelse(Cancer_AgeDiag3 > 18, NA, Cancer_SEERSumStg20003),
+         
+         Cancer_Histology4 = ifelse(Cancer_AgeDiag4 > 18, NA, Cancer_Histology4),
+         Cancer_BehaviorICDO34 = ifelse(Cancer_AgeDiag4 > 18, NA, Cancer_BehaviorICDO34),
+         Cancer_PrimarySite4 = ifelse(Cancer_AgeDiag4 > 18, NA, Cancer_PrimarySite4),
+         Cancer_Laterality4 = ifelse(Cancer_AgeDiag4 > 18, NA, Cancer_Laterality4),
+         Cancer_SEERSumStg20004 = ifelse(Cancer_AgeDiag4 > 18, NA, Cancer_SEERSumStg20004),
+         
+         Cancer_Histology5 = ifelse(Cancer_AgeDiag5 > 18, NA, Cancer_Histology5),
+         Cancer_BehaviorICDO35 = ifelse(Cancer_AgeDiag5 > 18, NA, Cancer_BehaviorICDO35),
+         Cancer_PrimarySite5 = ifelse(Cancer_AgeDiag5 > 18, NA, Cancer_PrimarySite5),
+         Cancer_Laterality5 = ifelse(Cancer_AgeDiag5 > 18, NA, Cancer_Laterality5),
+         Cancer_SEERSumStg20005 = ifelse(Cancer_AgeDiag5 > 18, NA, Cancer_SEERSumStg20005),
+         
+         Cancer_Histology6 = ifelse(Cancer_AgeDiag6 > 18, NA, Cancer_Histology6),
+         Cancer_BehaviorICDO36 = ifelse(Cancer_AgeDiag6 > 18, NA, Cancer_BehaviorICDO36),
+         Cancer_PrimarySite6 = ifelse(Cancer_AgeDiag6 > 18, NA, Cancer_PrimarySite6),
+         Cancer_Laterality6 = ifelse(Cancer_AgeDiag6 > 18, NA, Cancer_Laterality6),
+         Cancer_SEERSumStg20006 = ifelse(Cancer_AgeDiag6 > 18, NA, Cancer_SEERSumStg20006)
+         )
+
+mi %<>% mutate(person.yrs = ifelse(cancer == 1, ageatdx/12, 
+                            ifelse(cancer == 0 & timeatrisk_nocancer <= 216, timeatrisk_nocancer/12,
+                            ifelse(timeatrisk_nocancer > 216, 18, NA))))
+
+mi.cancer <- mi %>% 
+  filter(cancer == 1) %>% 
+  select(STUDYID, 
+         starts_with('Cancer_Histology'), 
+         starts_with('Cancer_Behavior'), 
+         starts_with('Cancer_PrimarySite'), 
+         starts_with('Cancer_Laterality'),
+         starts_with('Cancer_SEERSumStg2000'))
+
+saveRDS(mi,
+        '//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Old_Datasets/Michigan/mi.v20220516.rds')
+
+saveRDS(mi.cancer,
+        '//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded_datasets/mi.cancer.codes.v20220516.rds')
+
+rm(list = ls()); gc()

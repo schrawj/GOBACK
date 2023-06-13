@@ -1,6 +1,8 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
-#' 2018.06.13.
+#' Authored: 2018.06.13.
+#' 
+#' Last updated: 2019.12.05.
 #' 
 #' It occurred to me to generate an alternative form of the data frame 
 #' holding birth defects codes: one with a row for every subject and a 
@@ -8,35 +10,42 @@
 #' children who have a given birth defect, whereas the existing data frame
 #' is well suited to looking up all codes in a given child.
 #' 
+#' Updated 2019.12.05 to combine the OK data with TX and NC.
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
-
-# Texas and North Carolina ------------------------------------------------
+# Texas, North Carolina, Oklahoma -----------------------------------------
 
 require(stringr); require(dplyr); require(tictoc)
 
-load("//discovery2/bcm-pedi-genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata")
+#load("//discovery2/bcm-pedi-genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata")
+load('//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txncok.v20191205.rdata')
 
 #' Generate a list of all the unique codes.
 codes <- as.character()
 
-for (i in 1:nrow(bd.codes.txnc)){
-  tmp <- as.character(bd.codes.txnc[i,2:67])
-  codes <- c(codes, subset(tmp, !is.na(tmp)))
+#' Slow, as you can imagine.
+for (i in 1:nrow(bd.codes.ok.nc.tx)){
+  
+  tmp <- as.character(bd.codes.ok.nc.tx[i,2:ncol(bd.codes.ok.nc.tx)])
+  codes <- c(codes, subset(tmp, !is.na(tmp) & tmp != 'NA'))
   codes <- subset(codes, !duplicated(codes))
+  
 }
 
 codes <- sort(codes)
 
 #' Initialize an empty data frame with the proper dimensions and names.
-bd.codes.txnc.transpose <- as.data.frame(matrix(nrow = nrow(bd.codes.txnc), ncol = 1 + length(codes)))
-names(bd.codes.txnc.transpose) <- c('studyid', codes)
-bd.codes.txnc.transpose[, 1] <- bd.codes.txnc$studyid
+bd.codes.ok.nc.tx.transpose <- as.data.frame(matrix(nrow = nrow(bd.codes.ok.nc.tx), ncol = 1 + length(codes)))
+
+names(bd.codes.ok.nc.tx.transpose) <- c('studyid', codes)
+
+bd.codes.ok.nc.tx.transpose[, 1] <- bd.codes.ok.nc.tx$studyid
 
 #' Ensure both data frames have rows sorted in the same order.
-bd.codes.txnc <- arrange(bd.codes.txnc, studyid)
-bd.codes.txnc.transpose <- arrange(bd.codes.txnc.transpose, studyid)
+bd.codes.ok.nc.tx <- arrange(bd.codes.ok.nc.tx, studyid)
+
+bd.codes.ok.nc.tx.transpose <- arrange(bd.codes.ok.nc.tx.transpose, studyid)
 
 #' Initialize an empty list.
 #' Extract non-missing, unique codes from each row of the data frame.  
@@ -44,15 +53,17 @@ bd.codes.txnc.transpose <- arrange(bd.codes.txnc.transpose, studyid)
 #' Save these indices as elements of a list.
 l <- list()
 
+#' Ran in ~3.5 minutes for TX, NC, and OK.
 tic()
-for (i in 1:nrow(bd.codes.txnc)){
+for (i in 1:nrow(bd.codes.ok.nc.tx)){
   
-  tmp <- as.character(bd.codes.txnc[i,2:67])
-  tmp <- subset(tmp, !duplicated(tmp))
-  tmp <- subset(tmp, !is.na(tmp))
-  
+  tmp <- as.character(bd.codes.ok.nc.tx[i,2:ncol(bd.codes.ok.nc.tx)])
+  tmp <- subset(tmp, !duplicated(tmp) & tmp != 'NA')
+
   for (j in 1:length(tmp)){
-    tmp[j] <- which(codes == tmp[j])
+   
+     tmp[j] <- which(codes == tmp[j])
+     
   }
   
   tmp <- as.numeric(tmp) + 1
@@ -62,19 +73,24 @@ for (i in 1:nrow(bd.codes.txnc)){
 }
 toc()
 
-#' For every row in the transposed data frame, set any column representing one of that child's diagnoses to 1.
+#' For every row in the transposed data frame, set all columns representing that child's diagnoses to 1.
+#' Slow. Ran in ~10.5 minutes for Tx, NC, and OK.
 tic()
-for (i in 1:nrow(bd.codes.txnc.transpose)){
+for (i in 1:nrow(bd.codes.ok.nc.tx.transpose)){
   
   for (j in l[[i]]){
-    bd.codes.txnc.transpose[i, j] <- 1
+    
+    bd.codes.ok.nc.tx.transpose[i, j] <- 1
+    
   }
+  
 }
 toc()
 
-save(bd.codes.txnc.transpose, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.transpose.v20180614.rdata')
+save(bd.codes.ok.nc.tx.transpose, 
+     file = '//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txncok.transpose.v20191205.rdata')
 
-rm(list = ls); gc()
+rm(list = ls()); gc()
 
 
 
@@ -132,9 +148,9 @@ for (i in 1:nrow(bd.codes.mi.transpose)){
     bd.codes.mi.transpose[i, j] <- 1
   }
 }
+
 toc()
 
 save(bd.codes.mi.transpose, file = 'Z:/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.transpose.v20180712.rdata')
 
 rm(list = ls()); gc()
-

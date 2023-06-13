@@ -491,10 +491,10 @@ load("C:/Users/schraw/Downloads/Updated GOBACK files/arkansas.v20170829.1.rdata"
 #' 'August' is equivalent to having a birth defect.
 #' 'July' is equivalent to not having having a birth defect.
 ar$person.yrs <- ifelse(ar$origin.set == "August" & ar$cancer == 0 & is.na(ar$age.in.months.at.death), ar$age.in.months.at.end.of.follow.up.if.alive/12,
-                        ifelse(ar$origin.set == 'August' & ar$cancer == 0 & !is.na(ar$age.in.months.at.death), ar$age.in.months.at.death/12,
-                                ifelse(ar$origin.set == 'August' & ar$cancer == 1, ar$age.in.months.at.cancer.diagnosis/12,
-                                       ifelse(ar$origin.set == 'July' & ar$cancer == 0, (as.Date('2011-12-31') - ar$bdate)/365,
-                                              ifelse(ar$origin.set == 'July' & ar$cancer == 1, (ar$dx.date - ar$bdate)/365, NA)))))
+                 ifelse(ar$origin.set == 'August' & ar$cancer == 0 & !is.na(ar$age.in.months.at.death), ar$age.in.months.at.death/12,
+                 ifelse(ar$origin.set == 'August' & ar$cancer == 1, ar$age.in.months.at.cancer.diagnosis/12,
+                 ifelse(ar$origin.set == 'July' & ar$cancer == 0, (as.Date('2011-12-31') - ar$bdate)/365,
+                 ifelse(ar$origin.set == 'July' & ar$cancer == 1, (ar$dx.date - ar$bdate)/365, NA)))))
 
 #' Looks good.
 print(ar[1:20,c(89,79,9,10,11,12,13,78)])
@@ -870,9 +870,8 @@ ar$digestivesystem.other.major <- ifelse(ar$cloacalexstrophy == 1, 1, ar$digesti
 
 
 
-
-
 # Generate level 3 CHD groups ---------------------------------------------
+
 ar$conotruncal.defects <- populate.chd.var(ar$commontruncus, ar$transpositionofgreatvessels, ar$doubleoutletrightventricledorv)
 ar$avsd <- ifelse(ar$endocardialcushiondefect == 1, 1, 0)
 ar$apvr <- ifelse(ar$totalanomalouspulmonaryvenousreturntapvr == 1, 1, 0)
@@ -882,8 +881,6 @@ ar$rvot.defects <- populate.chd.var(ar$pulmvalveatresiaandstenosis, ar$ebsteinan
 ar$septal.defects <- populate.chd.var(ar$ventricularseptaldefect, ar$atrialseptaldefect, ar$atrialseptaldefect)
 
 save(ar, file = 'Z:/Jeremy/GOBACK/Datasets/Arkansas/arkansas.v20170913.1.rdata')
-
-
 
 
 

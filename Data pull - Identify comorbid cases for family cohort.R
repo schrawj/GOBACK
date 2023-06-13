@@ -1,6 +1,8 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
-#' 2019.01.31.
+#' Created: 2019.01.31.
+#' 
+#' Last updated: 2019.03.22.
 #' 
 #' Sharon, Philip, and I have picked out several additional specific BD-CC
 #' associations we want to follow up in the family-based cohort.
@@ -13,63 +15,59 @@
 require(xlsx); require(dplyr)
 
 #' W:/ points to //smb-main.ad.bcm.edu/
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20180829.rdata')
-load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v20180908.rdata")
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190318.rdata')
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v20190327.rdata")
 load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180712.rdata')
 load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
 load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.bpa.to.icd.mappings.rdata')
 
-goback.ids <- goback.ids[!duplicated(goback.ids$studyid), ]
-
-#' Update MI dimensions to match TX and NC.
+#' Update MI BD codes data frame dimensions to match TX and NC. Then harmonize column names.
 for (i in 25:67){
   bd.codes.mi[ ,i] <- as.numeric()
 }
 
 for (i in 2:67){
-  colnames(bd.codes.mi)[i] <- paste0('bd.code',as.character(i))
-  colnames(bd.codes.txnc)[i] <- paste0('bd.code',as.character(i))
+  colnames(bd.codes.mi)[i] <- paste0('bd.code',as.character(i-1))
+  colnames(bd.codes.txnc)[i] <- paste0('bd.code',as.character(i-1))
 }
 
 bds <- c('choanal.atresia','spinabifida.wo.anencephaly','hydrocephalus.wo.spinabifida','pyloric.stenosis','lvot.defects',rep('pulmvalveatresiaandstenosis',2),'ventricularseptaldefect',rep('craniosynostosis',4))
 cancers <- c('leu.any','soft.other','nephro','medullo','neuro','neuro','hepato',rep('hepato',2),'medullo','nephro','neuro')
 
-#' Generates a list. Each element is a data frame with the IDs and BD codes for children with the index BD-CC event.
+#' Each element of the resulting list is a data frame with the IDs and BD codes for children with the index BD-CC event.
 l <- list()
 
 for (i in 1:length(bds)){
+
+  assoc.name <- paste0(bds[i],'-',cancers[i])
   
   bd.col <- which(colnames(goback) == bds[i])
   ca.col <- which(colnames(goback) == cancers[i])
   
-  tag <- paste0(bds[i],'-',cancers[i])
-  
   new.comorbid <- select(subset(goback, goback[,ca.col] == 1 & goback[,bd.col] == 1), studyid)
-
   new.comorbid <- left_join(new.comorbid, 
-                            select(goback.ids, studyid, bd.registry.id, cancer.registry.id),
+                            select(goback.ids, studyid, bd.registry.id, cancer.registry.id, recruitment.id),
                             by = 'studyid')
-  
   new.comorbid <- rbind(left_join(subset(new.comorbid, substr(new.comorbid$studyid,1,2) %in% c('tx','nc')),
-                               bd.codes.txnc,
-                               by = 'studyid'),
-                         left_join(subset(new.comorbid, substr(new.comorbid$studyid,1,2) == 'mi'),
-                               bd.codes.mi,
-                               by = 'studyid'))
+                                 bd.codes.txnc,
+                                 by = 'studyid'),
+                        left_join(subset(new.comorbid, substr(new.comorbid$studyid,1,2) == 'mi'),
+                                  bd.codes.mi,
+                                  by = 'studyid'))
 
-  l[[tag]] <- new.comorbid
+  l[[assoc.name]] <- new.comorbid
 
 }
 
-rm(goback, bd.codes.mi, bd.codes.txnc, bd.col, ca.col, i, goback.ids); gc()
+rm(goback, bd.codes.mi, bd.codes.txnc, bd.col, ca.col, i, goback.ids, assoc.name); gc()
 
-#' Removes birth defects columns with pure NA values.
+#' Removes birth defects columns with pure NA values across the board.
 for (i in 1:length(l)){
   
   last.col <-c()
   missing.count <- as.numeric()
   
-  for (j in 4:ncol(l[[i]])){
+  for (j in 5:ncol(l[[i]])){
     
     missing.count <- as.numeric(sum(is.na(l[[i]][,j])))
     
@@ -99,7 +97,8 @@ for (i in 1:length(l)){
 
 rm(last.col, missing.count, i, j)
 
-#' Add text descriptions for BD codes from TX DSHS. This step is optional and comparatively slow.
+#' Add text descriptions for BD codes from TX DSHS. 
+#' This step is optional and comparatively slow.
 map.bpa <- map[,1:2]
 map.icd <- map[,3:4]
 
@@ -107,11 +106,11 @@ for (i in 1:length(l)){
   
   out <- data.frame(l[[i]])
   
-  out <- data.frame(studyid = out[,1])
+  out <- data.frame(studyid = out[,1], recruitingid = out[,4])
   
-  for (j in 4:ncol(l[[i]])){
+  for (j in 5:ncol(l[[i]])){
     
-    new.col.names <- c(paste0('code',as.character(j-3)), paste0('name',as.character(j-3)))
+    new.col.names <- c(paste0('code',as.character(j-4)), paste0('name',as.character(j-4)))
     
     new.out.txnc <- select(filter(l[[i]], substr(l[[i]]$studyid,1,2) %in% c('tx','nc')), 1, j)
     names(new.out.txnc)[2] <- 'code'
@@ -143,7 +142,7 @@ for (i in 1:length(l)){
   
   if (nrow(l[[i]]) != 0){
     
-    write.xlsx(l[[i]], file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/children.w.target.bd.cc.associations.v20190206.xlsx',
+    write.xlsx(l[[i]], file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/children.w.target.bd.cc.associations.v20190327.xlsx',
                sheetName = names(l[i]), 
                row.names = FALSE, 
                showNA = FALSE,

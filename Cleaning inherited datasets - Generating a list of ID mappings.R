@@ -72,6 +72,31 @@ rm(list = ls()); gc()
 
 
 
+# Recruiment IDs, subset of MI cases who matched --------------------------
+
+require(dplyr); require(xlsx)
+
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v2019-02-20.2.rdata')
+
+mi.recruit.ids <- read.xlsx(file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/mi.recruiting.matches.DLM.xlsx',
+                            stringsAsFactors = F, sheetIndex = 1)
+
+#' Checked and confirmed that there are no duplicated study ID's among the 549 who we matched.
+#' Only need to filter on whether missing studyid.
+mi.recruit.ids <- subset(mi.recruit.ids, !is.na(mi.recruit.ids$studyid))
+mi.recruit.ids <- rename(mi.recruit.ids, recruitment.id = recruiting.id)
+
+#' Left join MI IDs to GOBACK, copy recruitment IDs to existing variable, drop duplicated one.
+goback.ids <- left_join(goback.ids, 
+                        select(mi.recruit.ids, studyid, recruitment.id),
+                        by = 'studyid')
+goback.ids$recruitment.id.x <- ifelse(goback.ids$state == 'MI' & is.na(goback.ids$recruitment.id.x), goback.ids$recruitment.id.y, goback.ids$recruitment.id.x)
+goback.ids <- rename(select(goback.ids, -recruitment.id.y), recruitment.id = recruitment.id.x)
+
+save(goback.ids, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v20190319.rdata')
+
+
+
 # Add birth defects and cancer status -------------------------------------
 
 require(dplyr)
@@ -85,5 +110,73 @@ goback.ids <- left_join(goback.ids,
 goback.ids <- rename(goback.ids, birth.defect = any.birthdefect)
 
 save(goback.ids, file = paste0('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v',Sys.Date(),'.3.rdata'))
+
+recruiting <- subset(goback.ids, !is.na(goback.ids$recruitment.id))
+
+write.csv(recruiting, file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/goback.studyid.to.recruiting.id.mapping.csv', row.names = F)
+
+rm(list = ls()); gc()
+
+
+
+# Generate list of matched comorbid cases ---------------------------------
+
+require(dplyr)
+
+#' Went back to the raw data for Texas. Think there may have been mismatches.
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v20190319.rdata')
+
+family.candidates <- read.csv(file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/tx.contact.and.dx.info.w.maternal.education.v20190130.csv',
+                              stringsAsFactors = F)
+demo <- as.data.frame(haven::read_dta(file = 'C:/Users/schraw/Downloads/demo.dta'))
+demo$birthID <- paste0('tx',demo$birthID)
+
+tcr <- as.data.frame(haven::read_dta(file = 'C:/Users/schraw/Downloads/tcr_17_007_july20 (STATA).dta'))
+tcr$birthid <- paste0('tx',tcr$birthid)
+
+goback.to.bdr <- left_join(select(demo, CASE_ID, birthID),
+                           goback.ids,
+                           by = c('birthID' = 'studyid'))
+
+goback.to.tcr <- left_join(select(tcr, patientid, birthid),
+                           goback.ids,
+                           by = c('birthid' = 'studyid'))
+
+id.mapping <- left_join(select(goback.to.tcr, birthid, patientid),
+                        select(goback.to.bdr, birthID, CASE_ID),
+                        by = c('birthid' = 'birthID'))
+id.mapping <- subset(id.mapping, !is.na(id.mapping$patientid) & !is.na(id.mapping$CASE_ID))
+id.mapping <- subset(id.mapping, !duplicated(id.mapping$birthid))
+id.mapping <- subset(id.mapping, id.mapping$patientid %in% family.candidates$patientid)
+id.mapping$state <- 'TX'
+id.mapping <- left_join(id.mapping,
+                        select(family.candidates, patientid, bc_link),
+                        by = 'patientid')
+id.mapping <- rename(id.mapping, studyid = birthid, bd.registry.id = CASE_ID, cancer.registry.id = patientid, recruitment.id = bc_link)
+id.mapping <- id.mapping[, c(1,4,3,2,5)]
+
+#' Generate a list of IDs for comorbid cases. 
+comorbid.ids <- subset(goback.ids, !is.na(goback.ids$recruitment.id) & goback.ids$state != 'TX')
+comorbid.ids <- rbind(id.mapping, comorbid.ids)
+
+save(comorbid.ids, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.ids.for.family.cohort.v20190319.rdata')
+
+#' Update TX comorbid cases in goback.ids file.
+keep.ids <- setdiff(goback.ids$studyid, comorbid.ids$studyid)
+goback.ids <- subset(goback.ids, goback.ids$studyid %in% keep.ids)
+goback.ids <- rbind(goback.ids, comorbid.ids)
+goback.ids <- subset(goback.ids, !duplicated(goback.ids$studyid))
+goback.ids <- arrange(goback.ids, studyid)
+
+save(goback.ids, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded Datasets/linked.registry.ids.v20190319.2.rdata')
+
+#' Pull maternal education, age, race-ethnicity from GOBACK and send to Dani.
+rm(demo, family.candidates, goback.to.bdr, goback.to.tcr, id.mapping, tcr); gc()
+
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190318.rdata")
+
+dani <- left_join(comorbid.ids, select(goback, studyid, m.age, m.race, m.edu2, f.age), by = 'studyid')
+
+write.csv(dani, file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/goback.studyid.to.recruitingid.mapping.csv', row.names = F)
 
 rm(list = ls()); gc()

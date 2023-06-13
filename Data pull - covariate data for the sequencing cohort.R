@@ -1,19 +1,22 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
-#' Dani wants maternal education, race, and age at DX for MI children and 
-#' maternal education for TX children in the family-based cohort.
+#' 2019.03.27.
 #' 
-#' TX is easy but in MI the identifiers don't overlap between her set and
-#' mine. Code below is pulls this info for TX, and for the MI kids that 
-#' were relatively easy to map based on their birth defects and cancer 
-#' codes.
-#' 
+#' Dani needs age at diagnosis, race-ethnicity, and maternal education for 
+#' the recruitment paper.
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
-
 
 require(xlsx); require(dplyr); require(stringr)
 
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190318.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v20190327.rdata')
+
+comorbid.cases <- select(filter(goback, cancer == 1 & any.birthdefect == 1), studyid, m.race, m.edu2, person.yrs)
+comorbid.cases <- left_join(comorbid.cases, select(goback.ids, studyid, recruitment.id), by = 'studyid')
+
+write.csv(comorbid.cases, file = 'W:/Old_genepi2/Jeremy/GOBACK/Manuscripts/Recruitment Paper/recruitment.paper.covariates.v20190327.csv',
+          row.names = FALSE)
 
 # Read in and clean files Dani sent ---------------------------------------
 

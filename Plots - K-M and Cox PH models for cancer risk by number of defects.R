@@ -14,6 +14,7 @@
 require(survival)
 
 load('Z:/Jeremy/GOBACK/Datasets/goback.nochrom.v20180711.rdata')
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20190429.rdata')
 
 goback.nochrom$majordefect.cat <- factor(ifelse(goback.nochrom$majordefect.total == 0, 0,
                                                 ifelse(goback.nochrom$majordefect.total == 1, 1,
@@ -272,7 +273,8 @@ for (i in 1:length(outcomes)){
                          xlim = c(0,18), 
                          font.tickslab = c(15, 'bold', 'black'),
                          linetype = 'strata', 
-                         legend = "none")
+                         legend = "none",
+                         palette = 'pal_jama')
   
   the.plots.thicken[i] <- new.plot
   

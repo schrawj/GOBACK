@@ -36,6 +36,7 @@ rm(list = ls()); gc()
 
 
 
+
 # Get NC info -------------------------------------------------------------
 
 require(haven); require(xlsx); require(dplyr)
@@ -373,34 +374,54 @@ rm(list = ls()); gc()
 
 
 
-# Scratch paper -----------------------------------------------------------
 
-#' Dani wants NCID for the 13 exact matches. Don't have it. Can get it. 
-require(haven); require(xlsx); require(dplyr)
 
-dani <- read.xlsx(file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/RAW_NC contact and dx info.xlsx',
-                  header = TRUE, sheetName = 'Dx', stringsAsFactors = FALSE) #' Downloaded from the 'GOBACK Paper' Box folder on 1/30/2019.
+# Get Texas info, updated recruitment sheet -------------------------------
 
-# <- read_sas(data_file = "W:/Old_genepi2/Birth Defects-Childhood Cancer Projects/GOBACK/North Carolina Data/ALSF files from NC to BCM/Comorbid patients eligible for follow-up/nc_comordid_forbcm.sas7bdat")
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
+#' 2019.03.27.
+#' 
+#' Dani found and sent some newer recruitment sheet for TX cases.
+#' 
+#' It looks better organized, has both patientid and case_ID, and has about
+#' 100 more cases. 
+#' 
+#' After joining these files based on cancer registry ID, i did some
+#' QC:
+#' - 765 of the 847 rows were matched to a record in my GOBACK file.
+#' - Birth year from the recruiting sheet matched well with birth year and
+#'   person years from my data.
+#' - ICDO3 codes matched well.
+#' - Child's race-eth from the recruiting sheet and maternal race-eth from 
+#'   my file matched pretty well.
+#'   
+#' These are good matches and it looks like a better success rate than
+#' previously. 
+#'-------------------------------------------------------------------------
+#'-------------------------------------------------------------------------
 
-nc.linked <- read_sas(data_file = 'W:/Old_genepi2/Birth Defects-Childhood Cancer Projects/GOBACK/North Carolina Data/ALSF files from NC to BCM/Association analyses/nc_linked_forbcm.sas7bdat')
+require(dplyr); require(xlsx); require(stringr)
 
-names(nc.linked) <- tolower(names(nc.linked))
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v20190319.2.rdata")
 
-search.space <- subset(nc.linked, nc.linked$comorbid_flag == 1 & nc.linked$yearbth == '2011') #' The total population of comorbid cases in NC.
+recruit <- read.xlsx(file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/TX REGISTRY DATA UPDATED 15-008_forMA.xlsx',
+                     sheetName = 'Sheet1', stringsAsFactors = F)
 
-search.space <- select(search.space, ncid, sex, behavior_code_icdo3_1, histologic_type_icdo3_1, primary_site_1, dx1:dx10)
+tx.ids <- select(filter(goback.ids, state == 'TX'), -recruitment.id)
+goback.ids <- filter(goback.ids, state != 'TX')
 
-dani.2011 <- subset(dani, dani$yob == 2011)
-dani.2011 <- select(dani.2011, bcertno, sex, behavior_code_icdo3, histology_type_icdo3, primary_site, dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8, dx9, dx10)
+#' recruit$case_id should correspond to BD registry id, 
+#' recruit$patientid should correspond to cancer registry id.
+tx.ids <- left_join(tx.ids, 
+                    select(recruit, patientid, case_id),
+                    by = c('cancer.registry.id' = 'patientid'))
 
-write.csv(dani.2011, file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/nc.2011.children.bcert.and.codes.csv', row.names = FALSE)
-write.csv(search.space, file = 'W:/Old_genepi2/Jeremy/GOBACK/Family-based cohort/nc.2011.children.ncid.and.codes.csv', row.names = FALSE)
+tx.ids$recruitment.id <- ifelse(!is.na(tx.ids$case_id), tx.ids$cancer.registry.id, as.character(NA))
+tx.ids <- select(tx.ids, -case_id)
 
-print(t(subset(dani.round.two, dani.round.two$recruiting.id == 582)))
-print(t(subset(goback, goback$studyid == 'mi5623')))
-print(t(subset(cancer.codes, cancer.codes$studyid == 'mi5623')))
+goback.ids <- rbind(tx.ids, goback.ids)
 
-print(t(subset(dani.round.two, dani.round.two$recruiting.id == 313)))
-print(t(subset(goback, goback$studyid == 'mi1068')))
-print(t(subset(cancer.codes, cancer.codes$studyid == 'mi1068')))
+save(goback.ids, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/linked.registry.ids.v20190327.rdata')
+
+rm(list = ls()); gc()

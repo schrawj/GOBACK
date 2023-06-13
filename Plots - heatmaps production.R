@@ -7,7 +7,7 @@
 
 require(dplyr); require(ggplot2)
 
-load('Z:/Jeremy/GOBACK/Datasets/Expanded datasets/goback.coxph.results.v20180612.rdata')
+load('//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/goback.coxph.results.v20180612.rdata')
 
 #' Need an updated defects matrix.
 #' Omit osteosarcoma from cancers, because no associations were tested.
@@ -62,4 +62,23 @@ p <-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
              theme(axis.title.y = element_text(face = "bold", size = 22)) +
              theme(legend.title = element_text(face = 'bold', size = 22)) +
              theme(legend.text = element_text(size = 14))
+print(p)
+
+p <-  ggplot(data = bd.cc.associations, aes(x = cancer, y = defect)) +
+      
+      geom_tile(aes(fill = signif.cat), color = 'black') + 
+  
+      scale_fill_manual(values = c('grey75','indianred1','firebrick3','darkred','white')) +
+  
+      guides(fill = guide_legend(title='Adjusted Hazard Ratio')) +
+  
+      theme_bw() +
+  
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14, face = 'bold'),
+            axis.text.y = element_text(size = 14, face = 'bold'),
+            axis.title = element_blank(),
+            legend.title = element_text(face = 'bold', size = 22),
+            legend.text = element_text(size = 14, face = 'bold'),
+            legend.position = 'top')
+
 print(p)

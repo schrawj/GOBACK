@@ -1,12 +1,10 @@
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
-#'                                       
-#'                              ALL STATES
+#'                              GOBACK 1.0
+#'                            TX, MI, NC, AR
 #'                                         
-#' Ready to merge all four states together.
-#' 
-#' As much as possible, I refrained from doing data cleaning on each state
-#' separately.  Much of it is done here on the combined file.
+#' This script documents all data cleaning and reshaping steps that were 
+#' performed in the combined four-state GOBACK 1.0 file.
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
@@ -178,7 +176,7 @@ save(goback, file = './goback.v20171107.2.rdata')
 #'-------------------------------------------------------------------------
 #'-------------------------------------------------------------------------
 
-require(dplyr)
+require(tidyverse)
 
 load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Old Datasets/goback.v20171107.2.rdata')
 
@@ -195,6 +193,8 @@ birthweight.norms <- filter(birthweight.norms, sex != 9)
 birthweight.norms <- rename(birthweight.norms, median.birth.wt = birth.wt.x, sd.birth.wt = birth.wt.y)
 birthweight.norms$upper.limit <- birthweight.norms$median.birth.wt + 4*(birthweight.norms$sd.birth.wt) 
 birthweight.norms$lower.limit <- ifelse((birthweight.norms$median.birth.wt - 4*birthweight.norms$sd.birth.wt) < 0, 0, birthweight.norms$median.birth.wt - 4*birthweight.norms$sd.birth.wt)
+
+write_csv(birthweight.norms, file = '//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/birthweight.norms.v20210805.csv')
 
 save(birthweight.norms, file = './birthweight.norms.rdata')
 
@@ -1207,18 +1207,18 @@ rm(list = ls()); gc()
 
 require(dplyr)
 
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180606.rdata')
+load('//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.txnc.v20180606.rdata')
+load('//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/bd.codes.mi.v20180712.rdata')
 
 tsc.txnc <- filter(bd.codes.txnc, bpa1 == '759.500')
 for (i in 3:67){
-  tmp <- filter(bd.codes.txnc, bd.codes.txnc[, i] == '759.900')
+  tmp <- filter(bd.codes.txnc, bd.codes.txnc[, i] == '759.500')
   tsc.txnc <- rbind(tsc.txnc, tmp)
 }
 tsc.txnc <- tsc.txnc[!duplicated(tsc.txnc$studyid), ]
 tsc.mi <- filter(bd.codes.mi, icd9cod1 == '759.5')
 for (i in 3:25){
-  tmp <- filter(bd.codes.mi, bd.codes.mi[, i] == '759.9')
+  tmp <- filter(bd.codes.mi, bd.codes.mi[, i] == '759.5')
   tsc.mi <- rbind(tsc.mi, tmp)
 }
 tsc.mi <- tsc.mi[!duplicated(tsc.mi$studyid), ]
@@ -1633,11 +1633,146 @@ rm(list = ls()); gc()
 
 
 
+# Correct missing m.race values in MI -------------------------------------
+
+#' 38 MI women with missing race values escaped reclassification.
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190429.2.rdata')
+
+table(goback$state, goback$m.race, useNA = 'ifany')
+
+goback$m.race[is.na(goback$m.race)] <- 'Unknown'
+
+table(goback$state, goback$m.race, useNA = 'ifany')
+
+save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190529.1.rdata')
+
+rm(list = ls()); gc()
+
+
+
+# Correct zero values for children with complex CHD -----------------------
+
+#' Certain CHD variables, mostly higher level CHD groupings, had '0' values in some children without the index defect but with other forms of CHD.
+#' Replace these with NA for consistency with other birth defects variables.
+load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190529.1.rdata')
+
+recode <- function(x){
+  
+  ifelse(goback$conganomalies.heart.circsys == 1 & x == 0, NA, x)
+}
+
+vars <- c('septal.defects','rvot.defects','lvot.defects','common.truncus','transposition.of.greatvessels','conotruncal.defects')
+
+for (i in vars){
+  
+  print(table(goback[,i], goback$conganomalies.heart.circsys, useNA = 'ifany'))
+  
+  goback[,i] <- recode(goback[,i])
+  
+  print(table(goback[,i], goback$conganomalies.heart.circsys, useNA = 'ifany'))
+  
+}
+
+save(goback, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190529.2.rdata')
+
+rm(list = ls()); gc()
+
+
+
+# Some children incorrectly counted as having two CBTs --------------------
+
+require(dplyr)
+
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190529.2.rdata")
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/Expanded datasets/cancer.codes.v20180227.1.rdata")
+
+cancer.vars <- which(names(goback) %in% c('ependymoma', 'medullo', 'astro', 'pnet', 'cns.other'))
+
+goback$n.cbt <- rowSums(goback[cancer.vars], na.rm = T)
+
+two.cbt <- filter(goback, n.cbt > 1)
+
+two.cbt.codes <- subset(cancer.codes, cancer.codes$studyid %in% two.cbt)
+
+table(two.cbt.codes$morph31, two.cbt.codes$site_code1)
+
+goback$cns.other <- ifelse(goback$studyid %in% two.cbt$studyid, 0, goback$cns.other)
+
+#' Write study IDs for kids counted twice to a csv file for Erin Marcotte. 
+#' She's currently working on a mediation analysis using these data.
+write.csv(select(two.cbt, studyid), 
+          file = 'W:/Old_genepi2/Jeremy/GOBACK/Sex-birth defect mediation analysis/study.ids.for.duplicate.cbt.cases.v20190605.csv',
+          row.names = F)
+
+goback <- select(goback, -n.cbt)
+
+save(goback, file = '//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190606.1.rdata')
+
+rm(list = ls()); gc()
+
+
+
+
+
+# Correct incorrect NA values for integument in kids with no BDs ----------
+
+require(dplyr)
+
+load("//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190606.1.rdata")
+
+#' About 600,000 children who do not appear to have any birth defect incorrectly have NA values for integument anomalies.
+ids <- c(filter(goback, is.na(conganomalies.integument) & any.birthdefect == 0)$studyid)
+
+goback$conganomalies.integument <- ifelse(goback$studyid %in% ids, 0, goback$conganomalies.integument)
+
+save(goback, file = '//smb-main.ad.bcm.edu/genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190912.1.rdata')
+
+rm(list = ls()); gc()
+
+
+
+# More accurate name for Turner syndrome variable -------------------------
+
+require(dplyr)
+
+#' After review I discovered that the Turner syndrome variable includes both males and females, really any child
+#' with a code in the 758.6XX range. This is not restricted to Turner syndrome. In Peter Langlois' dx_map file,
+#' the ICD9 name for these codes is "gonadal dysgenesis."
+
+load('//smb-main.ad.bcm.edu//genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190912.1.rdata')
+
+goback <- rename(goback, gonadal.dysgenesis = turner.syndrome)
+
+save(goback, file = '//smb-main.ad.bcm.edu//genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20191030.rdata')
+
+rm(list = ls()); gc()
+
+
+
+# Remove vestigial bw.flag variable ---------------------------------------
+
+#' This variable was computed as a check on the birthweigth categories variable. The categories are valid 
+#' and bw.flag doesn't tell us anything else. birth.char.flag is the one to be used for identifying children with unusual 
+#' birthweight/gestational age combinations.
+
+require(dplyr)
+
+load('//smb-main.ad.bcm.edu//genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20191030.rdata')
+
+goback <- select(goback, -bw.flag)
+
+save(goback, file = '//smb-main.ad.bcm.edu//genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20191114.rdata')
+
+rm(list = ls()); gc()
+
+
 # Split dataset into new chromosomal and non-chromosomal sets -------------
 
 require(dplyr)
 
-load('W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.v20190429.2.rdata')
+setwd('//smb-main.ad.bcm.edu//genepi2/Old_genepi2/Jeremy/GOBACK/Datasets/')
+
+load('goback.v20191114.rdata')
 
 chrom <- filter(goback, any.birthdefect == 1 & any.genetic.anomaly == 1)
 no.chrom <- filter(goback, any.birthdefect == 1 & is.na(any.genetic.anomaly))
@@ -1645,16 +1780,12 @@ control <- filter(goback, any.birthdefect == 0)
 
 rm(goback); gc()
 
-goback.nochrom <- rbind(no.chrom, control)
-save(goback.nochrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.nochrom.v20190429.rdata')
+goback.nochrom <- bind_rows(no.chrom, control)
+save(goback.nochrom, file = 'goback.nochrom.v20191114.rdata')
 rm(goback.nochrom, no.chrom); gc()
 
-goback.chrom <- rbind(chrom, control)
-save(goback.chrom, file = 'W:/Old_genepi2/Jeremy/GOBACK/Datasets/goback.chrom.v20190429.rdata')
+goback.chrom <- bind_rows(chrom, control)
+save(goback.chrom, file = 'goback.chrom.v20191114.rdata')
 
 rm(list = ls()); gc()
-
-
-
-
 

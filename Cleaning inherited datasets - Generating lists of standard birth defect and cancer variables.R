@@ -3,6 +3,7 @@ require(stringr)
 
 def.vars <- read.xlsx(file = 'Z:/GOBAcK/Jeremy/Data dictionaries and data definitions/Variable list.xlsx', sheetName = 'Birth defects variables',
                       header = FALSE, colIndex = 1)
+
 def.vars$X1 <- str_replace_all(def.vars$X1, '_','.')
 def.vars$X1 <- str_replace(def.vars$X1, pattern ='\\Q(\\E+NEW+\\Q)\\E', '')
 def.vars$X1 <- trimws(def.vars$X1, 'right')
